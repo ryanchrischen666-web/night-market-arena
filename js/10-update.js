@@ -31,6 +31,8 @@ function makePlayer(heroId, idx) {
     speedBuff: 0, speedBuffMul: 1,
     atkBuff: 0, atkBuffMul: 1,
     stealth: 0, invuln: 0,
+    stunT: 0, frozenT: 0, slowT: 0, slowMulP: 1,
+    burnT: 0, burnDmgP: 0, burnTickP: 0,
     shield: 0, shieldMul: 1,
     burnNext: 0,
     hitFlash: 0,
@@ -59,6 +61,17 @@ function updatePlayerCore(dt) {
   advanceAnim(player, dt);
   player.faceDir = (mouse.x >= player.x) ? 1 : -1;
 
+  // === 玩家異常狀態（連線對戰用；單機的敵人技能也吃得到了）===
+  if (player.stunT > 0) player.stunT -= dt;
+  if (player.frozenT > 0) player.frozenT -= dt;
+  if (player.slowT > 0) player.slowT -= dt;
+  if (player.burnT > 0) {
+    player.burnT -= dt;
+    player.burnTickP += dt;
+    if (player.burnTickP >= 0.5) { player.burnTickP = 0; damagePlayer(player.burnDmgP * 0.5); }
+  }
+  const _cc = player.stunT > 0 || player.frozenT > 0;
+
   // === Player movement ===
   let mx = 0, my = 0;
   if (player.idx === 0 && mobileMove.active) {
@@ -69,9 +82,11 @@ function updatePlayerCore(dt) {
     if (keys['a']) mx -= 1;
     if (keys['d']) mx += 1;
   }
+  if (_cc) { mx = 0; my = 0; }
   if (mx || my) {
     const len = Math.hypot(mx, my); if (len > 1) { mx /= len; my /= len; }
-    const sp = player.speed * (player.speedBuff > 0 ? player.speedBuffMul : 1);
+    let sp = player.speed * (player.speedBuff > 0 ? player.speedBuffMul : 1);
+    if (player.slowT > 0) sp *= player.slowMulP;
     player.x += mx * sp * 60 * dt;
     player.y += my * sp * 60 * dt;
     player.facing = Math.atan2(my, mx);
@@ -143,7 +158,7 @@ function updatePlayerCore(dt) {
 
 
   // Basic attack
-  if (mouse.down && player.atkTimer <= 0) {
+  if (mouse.down && player.atkTimer <= 0 && !_cc) {
     fireBasicAttack();
     player.atkTimer = player.atkCd;
   }
@@ -161,7 +176,7 @@ function update(dt) {
     if (z.type === 'soup' && z.life > 0) {
       // Heal any player standing in the soup
       z.healTimer = (z.healTimer || 0) + dt;
-      if (z.healTimer > 0.5) {
+      if (z.healTimer > 0.5 && !z.cosmetic) {
         let healed = false;
         for (const pl of players) {
           if (!pl.dead && pl.hp < pl.maxHp && Math.hypot(z.x - pl.x, z.y - pl.y) < z.r) {
@@ -197,7 +212,15 @@ function update(dt) {
         z.dmgTimer = 0;
       }
     }
-    if (z.type === 'rice') {
+    if (z.type === 'rice' && z.hostile) {
+      const pl = players[0];
+      if (pl && !pl.dead && Math.hypot(z.x - pl.x, z.y - pl.y) < z.r) { pl.slowT = Math.max(pl.slowT || 0, 0.3); pl.slowMulP = 0.4; }
+    }
+    if (z.type === 'slick' && z.hostile) {
+      const pl = players[0];
+      if (pl && !pl.dead && Math.hypot(z.x - pl.x, z.y - pl.y) < z.r) { pl.slowT = Math.max(pl.slowT || 0, 0.3); pl.slowMulP = 0.55; }
+    }
+    if (z.type === 'rice' && !z.hostile) {
       // Slow enemies inside
       for (const e of enemies) {
         if (e.dead) continue;
@@ -447,9 +470,16 @@ function update(dt) {
       // Enemy projectile vs players
       for (const pl of players) {
         if (pl.dead) continue;
+        if (p._hitsP && p._hitsP.has(pl)) continue;
         if (Math.hypot(pl.x - p.x, pl.y - p.y) < pl.r + p.r) {
           player = pl; damagePlayer(p.dmg); player = players[0];
-          p.life = 0; break;
+          if (p.kb) { const _a = Math.atan2(p.vy, p.vx) || 0; pl.x += Math.cos(_a) * p.kb; pl.y += Math.sin(_a) * p.kb; resolveBlocks(pl); }
+          if (p.snareOnHit) { pl.slowT = Math.max(pl.slowT || 0, p.snareOnHit); pl.slowMulP = 0.4; }
+          if (p.slowOnHit)  { pl.slowT = Math.max(pl.slowT || 0, p.slowOnHit);  pl.slowMulP = p.slowMulOnHit || 0.5; }
+          if (p.freezeOnHit) pl.frozenT = Math.max(pl.frozenT || 0, p.freezeOnHit);
+          if (p.onHitP) p.onHitP(p, pl);
+          if (p.pierce) { p._hitsP = p._hitsP || new Set(); p._hitsP.add(pl); }
+          else { p.life = 0; break; }
         }
       }
     }
@@ -476,7 +506,8 @@ function update(dt) {
 function fireBasicAttack() {
   Tutorial.onAttack();
   const ang = angleTo(player, mouse);
-  if (window.NetMatch && NetMatch.active && player === players[0]) NetMatch.sendAttack(ang);
+  if (window.NetMatch && NetMatch.active && player === players[0])
+    NetMatch.sendAttack(ang, player.atkBuff > 0 ? player.atkBuffMul : 1, player.burnNext > 0);
   if (player.atkRange < 100) {
     const range = player.atkRange;
     let dmg = player.atkDmg * (player.atkBuff > 0 ? player.atkBuffMul : 1);

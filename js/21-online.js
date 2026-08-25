@@ -134,7 +134,7 @@ const Online = (() => {
     if (!p) {
       p = document.createElement('div');
       p.id = 'online-panel';
-      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v9</span></h4>'
+      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v10</span></h4>'
                   + '<ul id="online-list"></ul><div class="om"></div>'
                   + '<button id="online-name-btn">改名字</button>';
       (document.getElementById('stage') || document.body).appendChild(p);

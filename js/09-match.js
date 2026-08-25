@@ -102,7 +102,9 @@ function updateAbilityBar() {
 function tryCast(i) {
   const ab = player.abilities[i];
   if (!ab || ab.timer > 0) return;
+  if (player === players[0] && (player.stunT > 0 || player.frozenT > 0)) return;
   ab.cast();
+  if (window.NetMatch && NetMatch.active && player === players[0]) NetMatch.sendCast(i, mouse.x, mouse.y);
   Sound.ability(ab.name);
   ab.timer = ab.cd;
   Tutorial.onCast(i);

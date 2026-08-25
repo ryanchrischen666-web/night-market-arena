@@ -94,6 +94,8 @@ document.getElementById('begin-btn').addEventListener('click', () => {
 });
 document.getElementById('restart-btn').addEventListener('click', () => {
   Sound.ui();
+  if (window.NetMatch && NetMatch.active) NetMatch.leaveRoom();
+  document.getElementById('rematch-btn').classList.add('hidden');
   document.getElementById('end-screen').classList.add('hidden');
   document.getElementById('title-screen').classList.remove('hidden');
   selectedHero = null; selectedMode = null;
