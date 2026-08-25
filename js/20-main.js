@@ -4,6 +4,7 @@
 function loop(now) {
   const dt = lastTime ? Math.min(0.05, (now - lastTime) / 1000) : 0;
   lastTime = now;
+  if (paused) { render(); requestAnimationFrame(loop); return; }
   if (hitStop > 0) {
     hitStop = Math.max(0, hitStop - dt);
   } else if (state === 'playing' || state === 'won') {
@@ -14,6 +15,41 @@ function loop(now) {
   render();
   requestAnimationFrame(loop);
 }
+
+// ============ PAUSE ============
+function setPaused(on) {
+  if (state !== 'playing' || paused === on) return;
+  paused = on;
+  const el = document.getElementById('pause-screen');
+  if (on) {
+    mouse.down = false;              // 免得恢復時立刻揮一刀
+    el.classList.remove('hidden');
+    Sound.stopMusic(); Sound.uiBack();
+  } else {
+    el.classList.add('hidden');
+    Sound.ui();
+    if (currentMap) Sound.startMusic(currentMap.theme);
+  }
+}
+
+// 放棄這一場：不結算、不發獎勵，直接回標題
+function quitMatch() {
+  paused = false;
+  document.getElementById('pause-screen').classList.add('hidden');
+  document.getElementById('hud').classList.add('hidden');
+  document.body.classList.remove('playing');
+  Sound.stopMusic(); Sound.uiBack();
+  Tutorial.stop();
+  state = 'title';
+  enemies = []; projectiles = []; particles = []; zones = []; dmgTexts = []; rings = [];
+  selectedHero = null; selectedMode = null;
+  document.getElementById('title-screen').classList.remove('hidden');
+  UI.renderTitleMeta();
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && state === 'playing') { e.preventDefault(); setPaused(!paused); }
+});
 
 // ============ FLOW ============
 function setSelectHeading(t) { const el = document.getElementById('select-title'); if (el) el.textContent = t; }
@@ -166,6 +202,9 @@ initTouch();
   on('ach-btn',      () => { Sound.ui(); UI.openScreen('ach-screen');   UI.renderAch(); });
   on('shop-btn',     () => { Sound.ui(); UI.openScreen('shop-screen');  UI.renderShop(); });
   on('tutorial-btn', () => { Sound.init(); Sound.resume(); Sound.ui(); Tutorial.start(); });
+  on('pause-btn',    () => setPaused(true));
+  on('resume-btn',   () => setPaused(false));
+  on('quit-btn',     quitMatch);
   ['howto-back', 'ach-back', 'shop-back'].forEach(id => on(id, () => { Sound.uiBack(); UI.backToTitle(); }));
 })();
 

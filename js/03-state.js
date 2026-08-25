@@ -25,6 +25,7 @@ let players = [];
 let hitStop = 0;
 let shakeMag = 0;
 let rings = [];
+let paused = false;
 let touchMode = false;
 let mobileMove = { active: false, dx: 0, dy: 0 };
 

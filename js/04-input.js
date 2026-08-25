@@ -7,7 +7,7 @@ window.addEventListener('keydown', (e) => {
   if (state === 'playing' && (code === 'Space' || code === 'Slash' || (code && code.indexOf('Arrow') === 0))) e.preventDefault();
   const firstK = !keys[k];
   keys[k] = true; if (code) keys[code] = true;
-  if (state !== 'playing') return;
+  if (state !== 'playing' || paused) return;
   if (firstK && abilityKeyMap[k] !== undefined && players[0] && !players[0].dead) castFor(players[0], () => tryCast(abilityKeyMap[k]));
 });
 window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; if (e.code) keys[e.code] = false; });

@@ -117,3 +117,36 @@
   .meta-xp { width: 130px; }
 }
 body.touch .title-subbtns { gap: 7px; }
+
+/* ===== 暫停 ===== */
+#pause-btn {
+  position: absolute; top: 52px; right: 14px; z-index: 32;
+  width: 40px; height: 34px;
+  background: rgba(28,16,44,0.82); color: var(--lantern);
+  border: 2px solid rgba(244,169,60,0.55); border-radius: 9px;
+  font-size: 13px; letter-spacing: 1px; cursor: pointer; line-height: 1;
+  transition: background .15s, border-color .15s;
+}
+#pause-btn:hover { background: rgba(244,169,60,0.18); border-color: var(--lantern); }
+#hud.hidden #pause-btn { display: none; }
+
+#pause-screen { z-index: 80; background: rgba(12,6,22,0.82); backdrop-filter: blur(3px); }
+.pause-box {
+  background: rgba(20,10,34,0.96); border: 3px solid var(--lantern);
+  border-radius: 16px; padding: 30px 46px; text-align: center;
+  box-shadow: 0 10px 50px rgba(0,0,0,0.65);
+}
+.pause-title {
+  font-family: 'Noto Serif TC', serif; font-weight: 900;
+  font-size: 42px; letter-spacing: 8px; color: var(--lantern);
+  text-shadow: 3px 3px 0 var(--red-deep);
+}
+.pause-title span {
+  display: block; font-family: 'Bungee', sans-serif; font-size: 15px;
+  letter-spacing: 5px; color: var(--paper); opacity: .75;
+  margin-top: 4px; text-shadow: none;
+}
+.pause-hint { font-size: 11px; opacity: .7; margin-top: 12px; letter-spacing: .5px; }
+.pause-hint b { color: var(--lantern-glow); }
+.pause-box .btn { margin-top: 18px; padding: 12px 30px; font-size: 15px; display: block; width: 100%; }
+body.touch #pause-btn { top: 14px; right: 62px; }

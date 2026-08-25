@@ -95,7 +95,18 @@
     <div id="boss-bar" class="hidden"><div class="boss-bar-label"><span class="bb-cn">滷味鍋大王</span><span class="bb-en">THE CAULDRON KING</span></div><div class="boss-bar-track"><div class="boss-bar-fill" id="boss-bar-fill"></div></div></div>
     <div class="abilities" id="abilities-bar"></div>
     <div class="match-banner" id="match-banner"></div>
+    <button id="pause-btn" title="暫停 Pause (ESC)">❚❚</button>
     <div class="controls-hint" id="controls-hint"><b>WASD</b> 移動 · <b>滑鼠</b> 瞑準 · <b>點擊</b> 攻擊 · <b>Q E R</b> 技能</div>
+  </div>
+
+  <!-- 暫停 -->
+  <div id="pause-screen" class="screen hidden">
+    <div class="pause-box">
+      <div class="pause-title">暫停<span>PAUSED</span></div>
+      <div class="pause-hint">按 <b>ESC</b> 繼續 · Press ESC to resume</div>
+      <button class="btn" id="resume-btn">繼續 · Resume</button>
+      <button class="btn btn-secondary" id="quit-btn">結束這場 · Quit</button>
+    </div>
   </div>
 
   <!-- 怎麼玩 -->
