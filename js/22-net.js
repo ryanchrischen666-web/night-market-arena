@@ -42,7 +42,7 @@ function updateRemote(e, dt) {
 const NetMatch = (() => {
   const SEND_MS = 66;       // 每秒約 15 次
   const DELAY_MS = 120;     // 內插緩衝：畫「120ms 前的對方」
-  let ch = null, active = false, started = false;
+  let ch = null, active = false, started = false, picking = false, myConfirmed = false;
   let remoteId = null, remoteHero = null, myHero = null, roomKey = '';
   let buf = [];             // 位置快照 {t, x, y, f, d}
   let remoteHp = null;      // 對方回報的血量（被打的人自己算，我只負責顯示）
@@ -63,13 +63,18 @@ const NetMatch = (() => {
     if (!Online.client) { note('錯誤：Supabase client 不存在'); return; }
     active = true; started = false; remoteId = rid; remoteHero = null; buf = []; roomKey = room;
     remoteHp = null; matchOver = false; rematchMine = rematchTheirs = false; remoteLeft = false;
-    myHero = (typeof selectedHero !== 'undefined' && selectedHero) || 'scallion';
+    picking = false; myConfirmed = false; myHero = null;
 
     ch = Online.client.channel('game:' + room, {
       config: { broadcast: { self: false }, presence: { key: Online.id } }
     });
     ch.on('broadcast', { event: 'hello' }, ({ payload }) => {
-        if (!remoteHero) { note('收到對方 hello：' + payload.hero); remoteHero = payload.hero; maybeBegin(); }
+        if (!remoteHero) {
+          note('對方選了 ' + (HEROES[payload.hero] ? HEROES[payload.hero].cn : payload.hero));
+          remoteHero = payload.hero;
+          if (picking && !myConfirmed) setSelectHeading('對方選好了！挑你的英雄 · Your turn');
+          maybeBegin();
+        }
       })
       .on('broadcast', { event: 'pos' }, ({ payload }) => {
         buf.push({ t: performance.now(), x: payload.x, y: payload.y, f: payload.f, d: payload.d });
@@ -89,9 +94,7 @@ const NetMatch = (() => {
         note('房間狀態：' + s);
         if (s === 'SUBSCRIBED') {
           await ch.track({});
-          sayHello();
-          // 對方可能比我晚進房，每秒重送直到開打
-          helloTimer = setInterval(() => { if (started) clearInterval(helloTimer); else sayHello(); }, 1000);
+          openHeroPick();
         } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') {
           note('房間連線失敗（' + s + '）');
           end('連線房間失敗');
@@ -100,13 +103,39 @@ const NetMatch = (() => {
   }
 
   function sayHello() {
+    if (!myHero) return;
     try { ch.send({ type: 'broadcast', event: 'hello', payload: { hero: myHero } }); } catch (e) {}
   }
 
   function maybeBegin() {
-    if (started || !remoteHero) return;
-    started = true;
+    if (started || !remoteHero || !myConfirmed) return;
+    started = true; picking = false;
+    if (helloTimer) clearInterval(helloTimer);
     beginMatch();
+  }
+
+  // ---------- 連線選角 ----------
+  function openHeroPick() {
+    picking = true; myConfirmed = false; myHero = null;
+    selectedHero = null;
+    document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
+    document.getElementById('select-screen').classList.remove('hidden');
+    resetHeroPick();
+    renderHeroCards();
+    setSelectHeading('連線對戰：選擇英雄 · Pick Your Hero');
+    note('選好英雄按「下一步」');
+  }
+
+  // confirm-hero-btn 在連線時改走這裡（20-main.js 分流）
+  function confirmHero() {
+    if (!picking || !selectedHero || myConfirmed) return;
+    myConfirmed = true; myHero = selectedHero;
+    setSelectHeading(remoteHero ? '對方已選好，馬上開打！' : '等待對方選角… Waiting…');
+    document.getElementById('confirm-hero-btn').classList.add('hidden');
+    sayHello();
+    if (helloTimer) clearInterval(helloTimer);
+    helloTimer = setInterval(() => { if (started) clearInterval(helloTimer); else sayHello(); }, 1000);
+    maybeBegin();
   }
 
   let rematchNo = 0;
@@ -208,13 +237,17 @@ const NetMatch = (() => {
     if (rematchMine && rematchTheirs) {
       rematchMine = rematchTheirs = false;
       matchOver = false; remoteHp = null; buf = [];
+      started = false; remoteHero = null;
       document.getElementById('rematch-btn').classList.add('hidden');
-      beginMatch();
+      document.getElementById('end-screen').classList.add('hidden');
+      document.body.classList.remove('playing');
+      document.getElementById('hud').classList.add('hidden');
+      openHeroPick();
     } else if (rematchTheirs && matchOver) {
       setRematchBtn('對方想再來一場！點擊開始', false);
     }
   }
-  function leaveRoom() { end(null); }
+  function leaveRoom() { picking = false; end(null); }
 
   // 我的攻擊 → 廣播角度（fireBasicAttack 裡呼叫）
   function sendAttack(ang, mul, burn) {
@@ -374,7 +407,8 @@ const NetMatch = (() => {
     }
   }
 
-  return { start, end, _interp, sendAttack, sendCast, sendDead, leaveRoom, get active() { return active; } };
+  return { start, end, _interp, sendAttack, sendCast, sendDead, leaveRoom, confirmHero,
+    get picking() { return picking; }, get active() { return active; } };
 })();
 
 // classic script 的 top-level const 不會掛上 window，明確掛上讓 21-online.js 找得到

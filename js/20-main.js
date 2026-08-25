@@ -79,6 +79,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
 });
 document.getElementById('confirm-hero-btn').addEventListener('click', () => {
   if (!selectedHero) return;
+  if (window.NetMatch && NetMatch.picking) { Sound.ui(); NetMatch.confirmHero(); return; }
   goToModeScreen();
 });
 document.getElementById('back-to-hero-btn').addEventListener('click', () => {
@@ -206,6 +207,7 @@ initTouch();
   on('tutorial-btn', () => { Sound.init(); Sound.resume(); Sound.ui(); Tutorial.start(); });
   on('pause-btn',    () => setPaused(true));
   on('select-home-btn', () => {
+    if (window.NetMatch && NetMatch.active) NetMatch.leaveRoom();
     Sound.uiBack(); resetHeroPick();
     document.getElementById('select-screen').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');
