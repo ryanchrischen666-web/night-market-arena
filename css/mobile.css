@@ -1,0 +1,30 @@
+  /* ===== Mobile touch controls ===== */
+  #touch-controls { display: none; position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+  body.touch.playing #touch-controls { display: block; }
+  #joy-zone { position: absolute; left: 0; bottom: 0; width: 42%; height: 80%; pointer-events: auto; }
+  #joy { position: absolute; width: 124px; height: 124px; margin: -62px 0 0 -62px; border-radius: 50%; background: radial-gradient(circle, rgba(244,169,60,0.12), rgba(244,169,60,0.03)); border: 2px solid rgba(244,169,60,0.4); pointer-events: none; }
+  #joy.hidden { display: none; }
+  #joy-knob { position: absolute; left: 62px; top: 62px; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 14px rgba(0,0,0,0.55); }
+  #touch-buttons { position: absolute; right: 16px; bottom: 18px; width: 200px; height: 190px; pointer-events: none; }
+  .tbtn { position: absolute; pointer-events: auto; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif TC', serif; font-weight: 900; -webkit-tap-highlight-color: transparent; touch-action: none; transition: transform .06s; }
+  .tbtn:active { transform: scale(0.9); }
+  .tbtn-atk { right: 0; bottom: 0; width: 96px; height: 96px; font-size: 30px; color: #fff; background: radial-gradient(circle at 38% 32%, #ff8a5a, #d62828); box-shadow: 0 5px 0 #7a1414, 0 8px 22px rgba(214,40,40,0.5); }
+  .tbtn-ab { width: 62px; height: 62px; font-size: 22px; color: #2a1640; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 0 #9a6a1e, 0 6px 16px rgba(0,0,0,0.45); }
+  .tbtn-ab.cooling { background: #3a3348; color: rgba(245,230,200,0.4); box-shadow: 0 3px 0 #221d2e; }
+  #tb-q { right: 108px; bottom: 4px; }
+  #tb-e { right: 96px; bottom: 84px; }
+  #tb-r { right: 20px; bottom: 116px; }
+  .tb-ic { pointer-events: none; }
+  body.touch .controls-hint { display: none; }
+  /* ===== Rotate-to-landscape hint ===== */
+  #rotate-hint { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(10,6,18,0.97); color: var(--lantern); align-items: center; justify-content: center; text-align: center; padding: 30px; }
+  body.touch.portrait #rotate-hint { display: flex; }
+  #rotate-hint .rh { font-family: 'Bungee', sans-serif; font-size: 22px; line-height: 1.5; }
+  #rotate-hint .rh small { display: block; margin-top: 10px; font-family: 'Space Mono', monospace; font-size: 12px; color: rgba(245,230,200,0.6); letter-spacing: 1px; }
+  #rotate-hint .rh .ph { font-size: 52px; display: block; margin-bottom: 8px; animation: rotnudge 1.6s ease-in-out infinite; }
+  @keyframes rotnudge { 0%,100% { transform: rotate(-12deg); } 55% { transform: rotate(78deg); } }
+  .hero-title { font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 9px; color: var(--lantern); opacity: 0.9; margin: 0 0 7px; line-height: 1.35; }
+  .hero-role .rcn { font-family: 'Noto Serif TC', serif; }
+  .hero-abilities .acn { font-family: 'Noto Serif TC', serif; color: rgba(245,230,200,0.85); }
+  .tagline-en { display: block; margin-top: 9px; font-size: 12px; opacity: 0.65; }
+  .end-en { display: block; font-family: 'Bungee', sans-serif; font-size: 24px; letter-spacing: 6px; margin-top: 4px; }

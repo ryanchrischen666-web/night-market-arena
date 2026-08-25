@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Night Market Arena</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/screens.css">
+<link rel="stylesheet" href="css/hud.css">
+<link rel="stylesheet" href="css/mobile.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Serif+TC:wght@700;900&family=Space+Mono&display=swap" rel="stylesheet">
+
+</head>
+<body>
+<div id="audio-controls">
+  <button id="sfx-toggle" title="Sound effects">SFX</button>
+  <button id="music-toggle" title="Music (M)">MUSIC</button>
+</div>
+
+<div id="stage">
+  <canvas id="game" width="900" height="640"></canvas>
+
+  <!-- Title -->
+  <div id="title-screen" class="screen">
+    <div class="lanterns">
+      <div class="lantern" style="top: 8%; left: 10%; animation-delay: 0s;"></div>
+      <div class="lantern" style="top: 14%; left: 85%; animation-delay: -1s;"></div>
+      <div class="lantern" style="top: 70%; left: 8%; animation-delay: -2s;"></div>
+      <div class="lantern" style="top: 78%; left: 88%; animation-delay: -1.5s;"></div>
+      <div class="lantern" style="top: 5%; left: 50%; animation-delay: -0.5s;"></div>
+    </div>
+    <h1 class="title">夜市<span class="accent">擂台</span></h1>
+    <div class="subtitle">Night Market Arena</div>
+    <div class="tagline">挑一位小吃英雄，選一場硬仗，在 1v1、1v2、1v3 的擂台上開打。<span class="tagline-en">Pick your food hero, pick your odds, and brawl the night-market roster in 1v1, 1v2 or 1v3.</span></div>
+    <button class="btn" id="start-btn">進入擂台 · Enter Arena</button>
+  </div>
+
+  <!-- Hero select -->
+  <div id="select-screen" class="screen hidden">
+    <div class="select-title" id="select-title">選擇英雄 · Choose Your Hero</div>
+    <button class="btn btn-secondary" id="coop-toggle">雙人 2P：OFF</button>
+    <div class="select-sub">挑一道菜 · Pick Your Flavor</div>
+    <div class="heroes-grid" id="heroes-grid"></div>
+    <button class="btn hidden" id="confirm-hero-btn">下一步 · Next</button>
+  </div>
+
+  <!-- Mode select -->
+  <div id="mode-screen" class="screen hidden">
+    <div class="select-title">選擇賠注 · Pick Your Odds</div>
+    <div class="select-sub">幾人敢來挑戰？· How many dare?</div>
+    <div class="modes-grid">
+      <div class="mode-card" data-mode="1v1">
+        <div class="mode-num">1v1</div>
+        <div class="mode-label">對決 DUEL</div>
+        <div class="mode-flavor">單挑一位強化過的勁敵，實力定勝負。<span style="display:block;opacity:.6;margin-top:3px">A single, beefed-up rival. Honour decides all.</span></div>
+        <div class="mode-mods">敵人 <b>HP ×1.5</b><br>敵人 <b>DMG ×1.15</b></div>
+      </div>
+      <div class="mode-card" data-mode="1v2">
+        <div class="mode-num">1v2</div>
+        <div class="mode-label">埋伏 AMBUSH</div>
+        <div class="mode-flavor">兩位全力的對手，別停下腳步。<span style="display:block;opacity:.6;margin-top:3px">Two opponents at full strength. Keep moving.</span></div>
+        <div class="mode-mods">敵人 <b>HP ×1.0</b><br>敵人 <b>DMG ×0.95</b></div>
+      </div>
+      <div class="mode-card" data-mode="1v3">
+        <div class="mode-num">1v3</div>
+        <div class="mode-label">圍攻 SWARM</div>
+        <div class="mode-flavor">三個較弱的敵人，但會迅速包圍你。<span style="display:block;opacity:.6;margin-top:3px">Three weaker enemies — but they crowd fast.</span></div>
+        <div class="mode-mods">敵人 <b>HP ×0.65</b><br>敵人 <b>DMG ×0.75</b></div>
+      </div>
+      <div class="mode-card mode-boss" data-mode="boss">
+        <div class="mode-num">王</div>
+        <div class="mode-label">魔王戰 BOSS</div>
+        <div class="mode-flavor">獨自挑戰巨大的「滷味鍋大王」——牠會噴湯、橫掃、滾沸、召喚小滷味。<span style="display:block;opacity:.6;margin-top:3px">Solo the giant Cauldron King — broth bullets, ladle sweeps, boiling pools, and minions.</span></div>
+        <div class="mode-mods">巨型魔王 · <b>HUGE HP</b><br><b>2 階段 · 2 PHASES</b></div>
+      </div>
+    </div>
+    <div class="vs-preview" id="vs-preview"></div>
+    <button class="btn hidden" id="begin-btn">開打！· Begin Battle</button>
+    <button class="btn btn-secondary" id="back-to-hero-btn">← 換英雄 Change Hero</button>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hp-bar"><div class="hp-fill" id="hp-fill" style="width: 100%"></div><div class="hp-text" id="hp-text">100 / 100</div></div>
+    <div class="match-info"><span id="mode-label">1v1</span> · 剩 <span id="enemies-left" class="num">0</span></div>
+    <div id="boss-bar" class="hidden"><div class="boss-bar-label"><span class="bb-cn">滷味鍋大王</span><span class="bb-en">THE CAULDRON KING</span></div><div class="boss-bar-track"><div class="boss-bar-fill" id="boss-bar-fill"></div></div></div>
+    <div class="abilities" id="abilities-bar"></div>
+    <div class="match-banner" id="match-banner"></div>
+    <div class="controls-hint" id="controls-hint"><b>WASD</b> 移動 · <b>滑鼠</b> 瞑準 · <b>點擊</b> 攻擊 · <b>Q E R</b> 技能</div>
+  </div>
+  <div id="hud-p2" class="hidden">
+    <div class="p2-name" id="hp2-name">Player 2</div>
+    <div class="hp-bar p2bar"><div class="hp-fill" id="hp2-fill" style="width:100%"></div><div class="hp-text" id="hp2-text">100 / 100</div></div>
+    <div class="p2-cds" id="p2-cds"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- End -->
+  <div id="end-screen" class="screen hidden">
+    <div class="end-title" id="end-title">勝利<span class="end-en">VICTORY</span></div>
+    <div class="end-stats" id="end-stats"></div>
+    <button class="btn" id="restart-btn">再玩一次 · Play Again</button>
+  </div>
+</div>
+
+<div id="touch-controls" aria-hidden="true">
+  <div id="joy-zone"></div>
+  <div id="joy" class="hidden"><div id="joy-knob"></div></div>
+  <div id="touch-buttons">
+    <button class="tbtn tbtn-ab" id="tb-q"><span class="tb-ic"></span></button>
+    <button class="tbtn tbtn-ab" id="tb-e"><span class="tb-ic"></span></button>
+    <button class="tbtn tbtn-ab" id="tb-r"><span class="tb-ic"></span></button>
+    <button class="tbtn tbtn-atk" id="tb-atk">⚔</button>
+  </div>
+</div>
+<div id="rotate-hint"><div class="rh"><span class="ph">📱</span>Rotate to landscape<small>Night Market Arena plays best sideways</small></div></div>
+
+<!-- 載入順序即正確性：classic script 不跨檔 hoist，請勿調換 -->
+<script src="js/00-abilities.js"></script>
+<script src="js/01-heroes.js"></script>
+<script src="js/02-modes.js"></script>
+<script src="js/03-state.js"></script>
+<script src="js/04-input.js"></script>
+<script src="js/05-util.js"></script>
+<script src="js/06-sound.js"></script>
+<script src="js/07-enemy-ai.js"></script>
+<script src="js/08-ui-select.js"></script>
+<script src="js/09-match.js"></script>
+<script src="js/10-update.js"></script>
+<script src="js/11-map.js"></script>
+<script src="js/12-render.js"></script>
+<script src="js/13-art.js"></script>
+<script src="js/14-boss.js"></script>
+<script src="js/15-draw.js"></script>
+<script src="js/16-main.js"></script>
+
+
+
+</body>
+</html>
