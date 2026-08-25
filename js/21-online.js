@@ -59,12 +59,15 @@ const Online = (() => {
     channel
       .on('broadcast', { event: 'invite' }, ({ payload }) => {
         if (payload.to !== id) return;
+        console.log('[NET] 收到邀請 from', payload.from);
         invites[payload.from] = { name: payload.name || '?', t: Date.now() };
         render();
       })
       .on('broadcast', { event: 'invite-accept' }, ({ payload }) => {
         if (payload.to !== id) return;
+        console.log('[NET] 對方接受了邀請');
         if (window.NetMatch) NetMatch.start(payload.room, payload.from);
+        else console.log('[NET] 錯誤：NetMatch 不存在');
       })
       .on('broadcast', { event: 'invite-decline' }, ({ payload }) => {
         if (payload.to !== id) return;
@@ -145,6 +148,7 @@ const Online = (() => {
           send('invite', { to: pid, from: idMe, name: me ? me.name : '?' });
           render();
         } else if (act === 'acc') {
+          console.log('[NET] 按下接受', pid);
           const room = [idMe, pid].sort().join('~');
           send('invite-accept', { to: pid, from: idMe, room });
           delete invites[pid];

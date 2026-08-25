@@ -19,8 +19,17 @@ const NetMatch = (() => {
   let buf = [];             // 位置快照 {t, x, y, f, d}
   let sendTimer = null, helloTimer = null;
 
+  // 除錯：把配對進度顯示在面板最下面那行，並印到 console
+  function note(msg) {
+    console.log('[NET]', msg);
+    const el = document.querySelector('#online-panel .om');
+    if (el) el.textContent = '[配對] ' + msg;
+  }
+
   function start(room, rid) {
-    if (active || !Online.client) return;
+    note('start 被呼叫 room=' + room.slice(0, 12) + '…');
+    if (active) { note('已在對戰中，略過'); return; }
+    if (!Online.client) { note('錯誤：Supabase client 不存在'); return; }
     active = true; started = false; remoteId = rid; remoteHero = null; buf = [];
     myHero = (typeof selectedHero !== 'undefined' && selectedHero) || 'scallion';
 
@@ -28,7 +37,7 @@ const NetMatch = (() => {
       config: { broadcast: { self: false }, presence: { key: Online.id } }
     });
     ch.on('broadcast', { event: 'hello' }, ({ payload }) => {
-        if (!remoteHero) { remoteHero = payload.hero; maybeBegin(); }
+        if (!remoteHero) { note('收到對方 hello：' + payload.hero); remoteHero = payload.hero; maybeBegin(); }
       })
       .on('broadcast', { event: 'pos' }, ({ payload }) => {
         buf.push({ t: performance.now(), x: payload.x, y: payload.y, f: payload.f, d: payload.d });
@@ -37,12 +46,14 @@ const NetMatch = (() => {
       .on('broadcast', { event: 'bye' }, () => end('對方離開了'))
       .on('presence', { event: 'leave' }, ({ key }) => { if (key === remoteId && started) end('對方斷線了'); })
       .subscribe(async (s) => {
+        note('房間狀態：' + s);
         if (s === 'SUBSCRIBED') {
           await ch.track({});
           sayHello();
           // 對方可能比我晚進房，每秒重送直到開打
           helloTimer = setInterval(() => { if (started) clearInterval(helloTimer); else sayHello(); }, 1000);
         } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') {
+          note('房間連線失敗（' + s + '）');
           end('連線房間失敗');
         }
       });
@@ -59,6 +70,7 @@ const NetMatch = (() => {
   }
 
   function beginMatch() {
+    note('雙方到齊，開打！');
     window.__previewedOpps = [];                 // 不生 AI 對手
     startMatch(myHero, 'net');
     delete window.__previewedOpps;
