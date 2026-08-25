@@ -7,5 +7,6 @@ const MODES = {
   '1v3': { count: 3, hpMul: 0.65, dmgMul: 0.75 },
   'boss': { count: 0, hpMul: 1, dmgMul: 1, boss: true },
   'tutorial': { count: 1, hpMul: 0.5, dmgMul: 0 },   // 練習用：對手不造成傷害
+  'net':      { count: 0, hpMul: 1,   dmgMul: 1 },   // 連線對戰：對手由網路驅動
 };
 

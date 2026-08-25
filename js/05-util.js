@@ -60,6 +60,7 @@ function nearestEnemy(x, y, maxR = Infinity) {
 }
 
 function damageEnemy(enemy, dmg, opts = {}) {
+  if (enemy.remote) return;   // 連線對手：第一階段先不做傷害同步
   if (enemy.dead) return;
   if (enemy.shieldMul) dmg *= enemy.shieldMul;
   enemy.hp -= dmg;

@@ -17,6 +17,8 @@ const Online = (() => {
   const NAME_KEY = 'nma_online_name';
   const ID_KEY   = 'nma_online_id';
   let sb = null, channel = null, me = null, peers = [];
+  let invites = {};      // 收到的邀請 fromId -> {name,t}
+  let sentTo = null;     // 我送出邀請的對象 id
   let status = 'off';   // off | connecting | online | error
 
   function myId() {
@@ -55,6 +57,19 @@ const Online = (() => {
 
     channel = sb.channel(ONLINE_CFG.room, { config: { presence: { key: id } } });
     channel
+      .on('broadcast', { event: 'invite' }, ({ payload }) => {
+        if (payload.to !== id) return;
+        invites[payload.from] = { name: payload.name || '?', t: Date.now() };
+        render();
+      })
+      .on('broadcast', { event: 'invite-accept' }, ({ payload }) => {
+        if (payload.to !== id) return;
+        if (window.NetMatch) NetMatch.start(payload.room, payload.from);
+      })
+      .on('broadcast', { event: 'invite-decline' }, ({ payload }) => {
+        if (payload.to !== id) return;
+        sentTo = null; render();
+      })
       .on('presence', { event: 'sync' }, () => {
         const st = channel.presenceState();
         peers = Object.entries(st)
@@ -104,7 +119,9 @@ const Online = (() => {
 #online-panel .om{opacity:.5;font-size:10px;margin-top:6px;line-height:1.5}
 #online-panel button{margin-top:8px;width:100%;background:transparent;border:1px solid rgba(255,190,90,.4);
   color:#ffbe5a;border-radius:6px;padding:4px;font-family:inherit;font-size:11px;cursor:pointer}
-#online-panel button:hover{background:rgba(255,190,90,.12)}`;
+#online-panel button:hover{background:rgba(255,190,90,.12)}
+#online-list button{width:auto;margin:0 0 0 4px;padding:1px 7px;font-size:10px}
+#online-list .invite-row{color:#ffe27a}`;
     document.head.appendChild(s);
   }
 
@@ -118,6 +135,25 @@ const Online = (() => {
                   + '<ul id="online-list"></ul><div class="om"></div>'
                   + '<button id="online-name-btn">改名字</button>';
       (document.getElementById('stage') || document.body).appendChild(p);
+      p.addEventListener('click', (ev) => {
+        const b = ev.target.closest('button[data-act]');
+        if (!b) return;
+        const act = b.dataset.act, pid = b.dataset.id;
+        const idMe = myId();
+        if (act === 'inv') {
+          sentTo = pid;
+          send('invite', { to: pid, from: idMe, name: me ? me.name : '?' });
+          render();
+        } else if (act === 'acc') {
+          const room = [idMe, pid].sort().join('~');
+          send('invite-accept', { to: pid, from: idMe, room });
+          delete invites[pid];
+          if (window.NetMatch) NetMatch.start(room, pid);
+        } else if (act === 'dec') {
+          send('invite-decline', { to: pid, from: idMe });
+          delete invites[pid]; render();
+        }
+      });
       p.querySelector('#online-name-btn').addEventListener('click', () => {
         const n = prompt('你的名字？', myName() || '');
         if (n && n.trim()) { setName(n.trim().slice(0, 16)); render(); }
@@ -153,10 +189,24 @@ const Online = (() => {
       ? `線上 ${peers.length + 1}`
       : status === 'connecting' ? '連線中…' : status === 'error' ? '連不上' : '離線';
 
+    // 過期的邀請（30 秒）自動消失
+    const nowT = Date.now();
+    Object.keys(invites).forEach(k => { if (nowT - invites[k].t > 30000) delete invites[k]; });
+
     const ul = p.querySelector('#online-list');
     const rows = [];
+    Object.entries(invites).forEach(([fid, inv]) => {
+      rows.push(`<li class="invite-row"><b>${esc(inv.name)}</b> 邀請你！`
+        + `<span><button data-act="acc" data-id="${fid}">接受</button>`
+        + `<button data-act="dec" data-id="${fid}">拒絕</button></span></li>`);
+    });
     if (me) rows.push(`<li><b>${esc(me.name)}（你）</b><span class="act">${ACT[me.activity] || ''}</span></li>`);
-    peers.forEach(x => rows.push(`<li>${esc(x.name || '?')}<span class="act">${ACT[x.activity] || ''}</span></li>`));
+    peers.forEach(x => {
+      const btn = (window.NetMatch && NetMatch.active) ? ''
+        : (sentTo === x.id ? '<span class="act">已邀…</span>'
+                           : `<button data-act="inv" data-id="${x.id}">邀請</button>`);
+      rows.push(`<li>${esc(x.name || '?')}<span class="act">${ACT[x.activity] || ''}</span>${btn}</li>`);
+    });
     ul.innerHTML = rows.join('') || '<li style="opacity:.5">還沒有人…</li>';
     p.querySelector('.om').textContent = peers.length ? '' : '把網址傳給朋友，他一開就會出現在這裡。';
   }
@@ -169,5 +219,12 @@ const Online = (() => {
     window.addEventListener('beforeunload', disconnect);
   }
 
-  return { connect, disconnect, setActivity, setName, render, get peers() { return peers; }, get status() { return status; }, enabled };
+  function send(event, payload) {
+    if (channel) { try { channel.send({ type: 'broadcast', event, payload }); } catch (e) {} }
+  }
+
+  return { connect, disconnect, setActivity, setName, render, send,
+    get client() { return sb; }, get id() { return myId(); },
+    get myName() { return me ? me.name : myName(); },
+    get peers() { return peers; }, get status() { return status; }, enabled };
 })();

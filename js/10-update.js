@@ -216,6 +216,7 @@ function update(dt) {
     if (e.dead) continue;
     if (e.isBoss) { updateBoss(e, dt); continue; }
     if (e.isMinion) { updateMinion(e, dt); continue; }
+    if (e.remote) { updateRemote(e, dt); continue; }
     player = nearestPlayer(e);
     advanceAnim(e, dt);
     e.faceDir = (player.x >= e.x) ? 1 : -1;
