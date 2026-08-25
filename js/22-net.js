@@ -124,3 +124,6 @@ const NetMatch = (() => {
 
   return { start, end, _interp, get active() { return active; } };
 })();
+
+// classic script 的 top-level const 不會掛上 window，明確掛上讓 21-online.js 找得到
+window.NetMatch = NetMatch;
