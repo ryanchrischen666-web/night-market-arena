@@ -121,6 +121,7 @@ body.touch .title-subbtns { gap: 7px; }
 /* ===== 暫停 ===== */
 #pause-btn {
   position: absolute; top: 52px; right: 14px; z-index: 32;
+  pointer-events: auto;   /* #hud 是 pointer-events:none，這裡要開回來滑鼠才點得到 */
   width: 40px; height: 34px;
   background: rgba(28,16,44,0.82); color: var(--lantern);
   border: 2px solid rgba(244,169,60,0.55); border-radius: 9px;

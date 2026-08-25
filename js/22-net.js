@@ -17,6 +17,8 @@ const NetMatch = (() => {
   let ch = null, active = false, started = false;
   let remoteId = null, remoteHero = null, myHero = null;
   let buf = [];             // 位置快照 {t, x, y, f, d}
+  let remoteHp = null;      // 對方回報的血量（被打的人自己算，我只負責顯示）
+  let matchOver = false;
   let sendTimer = null, helloTimer = null;
 
   // 除錯：把配對進度顯示在面板最下面那行，並印到 console
@@ -30,7 +32,7 @@ const NetMatch = (() => {
     note('start 被呼叫 room=' + room.slice(0, 12) + '…');
     if (active) { note('已在對戰中，略過'); return; }
     if (!Online.client) { note('錯誤：Supabase client 不存在'); return; }
-    active = true; started = false; remoteId = rid; remoteHero = null; buf = [];
+    active = true; started = false; remoteId = rid; remoteHero = null; buf = []; remoteHp = null; matchOver = false;
     myHero = (typeof selectedHero !== 'undefined' && selectedHero) || 'scallion';
 
     ch = Online.client.channel('game:' + room, {
@@ -42,8 +44,11 @@ const NetMatch = (() => {
       .on('broadcast', { event: 'pos' }, ({ payload }) => {
         buf.push({ t: performance.now(), x: payload.x, y: payload.y, f: payload.f, d: payload.d });
         if (buf.length > 40) buf.shift();
+        if (payload.h != null) remoteHp = payload.h;
       })
-      .on('broadcast', { event: 'bye' }, () => end('對方離開了'))
+      .on('broadcast', { event: 'atk' }, ({ payload }) => replayAttack(payload.a))
+      .on('broadcast', { event: 'dead' }, () => winByRemoteDeath())
+      .on('broadcast', { event: 'bye' }, () => end(matchOver ? null : '對方離開了'))
       .on('presence', { event: 'leave' }, ({ key }) => { if (key === remoteId && started) end('對方斷線了'); })
       .subscribe(async (s) => {
         note('房間狀態：' + s);
@@ -94,7 +99,7 @@ const NetMatch = (() => {
     if (!p) return;
     try {
       ch.send({ type: 'broadcast', event: 'pos',
-        payload: { x: Math.round(p.x), y: Math.round(p.y), f: p.facing, d: p.faceDir } });
+        payload: { x: Math.round(p.x), y: Math.round(p.y), f: p.facing, d: p.faceDir, h: Math.round(p.hp) } });
     } catch (e) {}
   }
 
@@ -116,6 +121,64 @@ const NetMatch = (() => {
     }
     const s = b || a;
     e.facing = s.f; e.faceDir = s.d;
+    if (remoteHp != null) e.hp = Math.min(e.maxHp, remoteHp);
+    if (remoteHp != null && remoteHp <= 0) winByRemoteDeath();
+  }
+
+  // 對方死了：標記屍體、進勝利結算
+  function winByRemoteDeath() {
+    if (matchOver || !started) return;
+    matchOver = true;
+    const e = enemies.find(x => x.remote);
+    if (e) { e.hp = 0; e.dead = true; totalKills++; spawnRing(e.x, e.y, '#ffd166', 60); }
+    if (state === 'playing') { state = 'won'; setTimeout(() => endGame(true), 800); }
+  }
+
+  // 我的攻擊 → 廣播角度（fireBasicAttack 裡呼叫）
+  function sendAttack(ang) {
+    if (!active || !started) return;
+    try { ch.send({ type: 'broadcast', event: 'atk', payload: { a: ang } }); } catch (e) {}
+  }
+
+  // 我死了 → 立刻通知（damagePlayer 裡呼叫）
+  function sendDead() {
+    if (!active || !started || matchOver) return;
+    matchOver = true;
+    try { ch.send({ type: 'broadcast', event: 'dead', payload: {} }); } catch (e) {}
+  }
+
+  // 在我的畫面重播「對方的攻擊」：從 remote 實體的位置、朝他傳來的角度打出去。
+  // 傷害採「被打的人自己判定」——只有這裡會扣我的血，我的攻擊在我畫面上不扣對方的血。
+  function replayAttack(ang) {
+    if (state !== 'playing' || matchOver) return;
+    const e = enemies.find(x => x.remote);
+    if (!e || e.dead) return;
+    const h = HEROES[e.id];
+    if (h.atkRange < 100) {
+      const range = h.atkRange, p = players[0];
+      if (p && !p.dead) {
+        const d = Math.hypot(p.x - e.x, p.y - e.y);
+        if (d <= range + p.r) {
+          const ea = Math.atan2(p.y - e.y, p.x - e.x);
+          const diff = Math.abs(((ea - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+          if (diff < Math.PI / 2.5) { player = p; damagePlayer(h.atkDmg); player = players[0]; }
+        }
+      }
+      const heavy = (e.id === 'scallion' || e.id === 'tofu' || e.id === 'sausage');
+      const quick = (e.id === 'hawthorn');
+      const span = quick ? Math.PI/2.6 : heavy ? Math.PI/2.0 : Math.PI/2.3;
+      const half = quick ? 0.20 : heavy ? 0.42 : 0.30;
+      const slife = quick ? 0.12 : heavy ? 0.2 : 0.16;
+      zones.push({ type: 'swing', x: e.x, y: e.y, ang, range, color: e.color, span, half, heavy, life: slife, maxLife: slife });
+      Sound.swing(e.id);
+    } else {
+      const st = ({ squid: 'ink', bubble: 'pearl' })[e.id] || 'bolt';
+      const mx = e.x + Math.cos(ang) * (e.r + 6), my = e.y + Math.sin(ang) * (e.r + 6);
+      projectiles.push({ x: mx, y: my, vx: Math.cos(ang) * 11, vy: Math.sin(ang) * 11, r: 6,
+        dmg: h.atkDmg, life: 1.3, color: e.color, team: 'enemy', style: st });
+      spawnParticles(mx, my, 7, e.color, { speed: 3, life: 0.25, size: 2 });
+      Sound.shot(e.id);
+    }
   }
 
   function end(msg) {
@@ -134,7 +197,7 @@ const NetMatch = (() => {
     }
   }
 
-  return { start, end, _interp, get active() { return active; } };
+  return { start, end, _interp, sendAttack, sendDead, get active() { return active; } };
 })();
 
 // classic script 的 top-level const 不會掛上 window，明確掛上讓 21-online.js 找得到

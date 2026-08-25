@@ -476,6 +476,7 @@ function update(dt) {
 function fireBasicAttack() {
   Tutorial.onAttack();
   const ang = angleTo(player, mouse);
+  if (window.NetMatch && NetMatch.active && player === players[0]) NetMatch.sendAttack(ang);
   if (player.atkRange < 100) {
     const range = player.atkRange;
     let dmg = player.atkDmg * (player.atkBuff > 0 ? player.atkBuffMul : 1);

@@ -94,7 +94,8 @@ function damagePlayer(dmg) {
   spawnSparks(player.x, player.y, big ? 9 : 6, '#ff8a96', Math.random() * Math.PI * 2, 4, Math.PI);
   addShake(big ? 6.5 : 3.5);
   if (big) addHitStop(0.05);
-  if (player.hp <= 0) { player.hp = 0; player.dead = true; spawnRing(player.x, player.y, '#ff4d5e', 52); addShake(9); addHitStop(0.12); if (players.every(pl => pl.dead)) endGame(false); }
+  if (player.hp <= 0) { player.hp = 0; player.dead = true;
+    if (window.NetMatch && NetMatch.active) NetMatch.sendDead(); spawnRing(player.x, player.y, '#ff4d5e', 52); addShake(9); addHitStop(0.12); if (players.every(pl => pl.dead)) endGame(false); }
   updateHud();
 }
 

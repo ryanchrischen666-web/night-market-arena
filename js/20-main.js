@@ -203,6 +203,12 @@ initTouch();
   on('shop-btn',     () => { Sound.ui(); UI.openScreen('shop-screen');  UI.renderShop(); });
   on('tutorial-btn', () => { Sound.init(); Sound.resume(); Sound.ui(); Tutorial.start(); });
   on('pause-btn',    () => setPaused(true));
+  on('select-home-btn', () => {
+    Sound.uiBack(); resetHeroPick();
+    document.getElementById('select-screen').classList.add('hidden');
+    document.getElementById('title-screen').classList.remove('hidden');
+    UI.renderTitleMeta();
+  });
   on('resume-btn',   () => setPaused(false));
   on('quit-btn',     quitMatch);
   ['howto-back', 'ach-back', 'shop-back'].forEach(id => on(id, () => { Sound.uiBack(); UI.backToTitle(); }));
