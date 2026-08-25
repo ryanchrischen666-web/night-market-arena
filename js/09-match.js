@@ -34,10 +34,10 @@ function startMatch(heroId, mode, opts = {}) {
   enemies.forEach(resolveBlocks);
 
   state = 'playing';
-  document.getElementById('mode-screen').classList.add('hidden');
-  document.getElementById('end-screen').classList.add('hidden');
+  // 關掉所有選單畫面（教學可從標題直接開打，不只從模式畫面進來）
+  document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
   document.getElementById('hud').classList.remove('hidden');
-  document.getElementById('mode-label').textContent = (coop ? '雙人 ' : '') + mode.toUpperCase();
+  document.getElementById('mode-label').textContent = mode === 'tutorial' ? '教學 TUTORIAL' : ((coop ? '雙人 ' : '') + mode.toUpperCase());
   document.getElementById('controls-hint').innerHTML = coop
     ? 'P1 <b>WASD</b>+<b>滑鼠</b>+<b>Q E R</b>  \u00b7  P2 <b>方向鍵</b>+<b>右Shift</b>+<b>, . /</b>'
     : '<b>WASD</b> 移動 \u00b7 <b>滑鼠</b> 瞑準 \u00b7 <b>點擊</b> 攻擊 \u00b7 <b>Q E R</b> 技能';
@@ -110,6 +110,7 @@ function tryCast(i) {
   ab.cast();
   Sound.ability(ab.name);
   ab.timer = ab.cd;
+  Tutorial.onCast(i);
 }
 
 function updateHud() {
@@ -173,5 +174,14 @@ function endGame(victory) {
     : (coop
         ? `兩位英雄都在鐵板混戰中倒下<br>模式 Mode <span>${currentMode.toUpperCase()}</span> · 擊倒 Kills <span>${totalKills}</span>`
         : `<span>${HEROES[selectedHero].cn}</span> 在鐵板混戰中倒下了<br>模式 Mode <span>${currentMode.toUpperCase()}</span> · 擊倒 Kills <span>${totalKills}</span>`);
+
+  // 結算獎勵：夜市幣 · 經驗 · 成就 · 最佳紀錄
+  const heroId = players[0] ? players[0].id : selectedHero;
+  UI.showRewards(Progress.finishMatch({
+    victory, mode: currentMode, coop,
+    heroId, hero2: (coop && players[1]) ? players[1].id : null,
+    kills: totalKills, seconds: parseFloat(time),
+    hpLeft: player ? player.hp : 0, maxHp: player ? player.maxHp : 1,
+  }));
 }
 

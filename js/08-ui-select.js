@@ -10,7 +10,10 @@ function renderHeroCards() {
     card.className = 'hero-card';
     card.dataset.id = id;
     const L = HERO_LORE[id] || { tCn:'', tEn:'', rCn:'', aCn:[] };
+    const wins = Progress.heroWins(id);
+    const badge = wins ? `<div class="hero-badge" title="通關 ${wins} 場">\u2605 ${wins}</div>` : '';
     card.innerHTML = `
+      ${badge}
       <div class="hero-emoji"><canvas class="hero-cv" width="84" height="84"></canvas></div>
       <div class="hero-name">${h.name}</div>
       <div class="hero-cn">${h.cn}</div>

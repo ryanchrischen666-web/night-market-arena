@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="css/screens.css">
 <link rel="stylesheet" href="css/hud.css">
 <link rel="stylesheet" href="css/mobile.css">
+<link rel="stylesheet" href="css/meta.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Serif+TC:wght@700;900&family=Space+Mono&display=swap" rel="stylesheet">
@@ -35,6 +36,13 @@
     <div class="subtitle">Night Market Arena</div>
     <div class="tagline">挑一位小吃英雄，選一場硬仗，在 1v1、1v2、1v3 的擂台上開打。<span class="tagline-en">Pick your food hero, pick your odds, and brawl the night-market roster in 1v1, 1v2 or 1v3.</span></div>
     <button class="btn" id="start-btn">進入擂台 · Enter Arena</button>
+    <div class="title-subbtns">
+      <button class="btn-mini" id="howto-btn">怎麼玩<span>How to Play</span></button>
+      <button class="btn-mini" id="tutorial-btn">教學<span>Tutorial</span></button>
+      <button class="btn-mini" id="ach-btn">成就<span>Awards</span></button>
+      <button class="btn-mini" id="shop-btn">攤位<span>Stall</span></button>
+    </div>
+    <div class="meta-bar" id="meta-bar"></div>
   </div>
 
   <!-- Hero select -->
@@ -96,10 +104,40 @@
     <div class="p2-cds" id="p2-cds"><span></span><span></span><span></span></div>
   </div>
 
+  <!-- 怎麼玩 -->
+  <div id="howto-screen" class="screen hidden">
+    <div class="select-title">怎麼玩 · How to Play</div>
+    <div class="ht-grid" id="howto-body"></div>
+    <button class="btn btn-secondary" id="howto-back">← 回標題 Back</button>
+  </div>
+
+  <!-- 成就 -->
+  <div id="ach-screen" class="screen hidden">
+    <div class="select-title">成就 · Awards</div>
+    <div class="select-sub">已解鎖 <span id="ach-count">0 / 0</span></div>
+    <div class="ach-grid" id="ach-body"></div>
+    <button class="btn btn-secondary" id="ach-back">← 回標題 Back</button>
+  </div>
+
+  <!-- 夜市攤位 -->
+  <div id="shop-screen" class="screen hidden">
+    <div class="select-title">夜市攤位 · Night Market Stall</div>
+    <div class="select-sub">你有 <b id="shop-coins">0</b> 夜市幣 · 全部用遊戲內幣，<b>不需要真錢</b></div>
+    <div class="shop-grid" id="shop-body"></div>
+    <button class="btn btn-secondary" id="shop-back">← 回標題 Back</button>
+  </div>
+
+  <!-- 教學提示 -->
+  <div id="tut-panel" class="hidden"></div>
+
+  <!-- 成就通知 -->
+  <div id="toast-wrap"></div>
+
   <!-- End -->
   <div id="end-screen" class="screen hidden">
     <div class="end-title" id="end-title">勝利<span class="end-en">VICTORY</span></div>
     <div class="end-stats" id="end-stats"></div>
+    <div class="rewards" id="rewards"></div>
     <button class="btn" id="restart-btn">再玩一次 · Play Again</button>
   </div>
 </div>
@@ -133,7 +171,11 @@
 <script src="js/13-art.js"></script>
 <script src="js/14-boss.js"></script>
 <script src="js/15-draw.js"></script>
-<script src="js/16-main.js"></script>
+<script src="js/16-save.js"></script>
+<script src="js/17-progress.js"></script>
+<script src="js/18-tutorial.js"></script>
+<script src="js/19-ui-meta.js"></script>
+<script src="js/20-main.js"></script>
 
 
 

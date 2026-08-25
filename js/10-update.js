@@ -399,7 +399,7 @@ function update(dt) {
   // Cleanup dead, check victory
   player = players[0];
   enemies = enemies.filter(e => !e.dead);
-  if (state === 'playing') {
+  if (state === 'playing' && currentMode !== 'tutorial') {
     if (currentMode === 'boss') {
       if (!enemies.some(e => e.isBoss)) { enemies = []; state = 'won'; setTimeout(() => endGame(true), 800); }
     } else if (enemies.length === 0) {
@@ -488,6 +488,7 @@ function update(dt) {
 }
 
 function fireBasicAttack() {
+  Tutorial.onAttack();
   const ang = angleTo(player, mouse);
   if (player.atkRange < 100) {
     const range = player.atkRange;

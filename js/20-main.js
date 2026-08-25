@@ -9,6 +9,8 @@ function loop(now) {
   } else if (state === 'playing' || state === 'won') {
     update(dt);
   }
+  Tutorial.tick(dt);
+  UI.cosmeticTick(dt);
   render();
   requestAnimationFrame(loop);
 }
@@ -82,6 +84,8 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   document.getElementById('end-screen').classList.add('hidden');
   document.getElementById('title-screen').classList.remove('hidden');
   selectedHero = null; selectedMode = null; selectedHero2 = null; pickingP2 = false;
+  Tutorial.stop();
+  UI.renderTitleMeta();
 });
 
 // audio: first-gesture unlock + toggle buttons
@@ -179,6 +183,17 @@ function initTouch() {
 }
 initTouch();
 
+// ===== 介紹 / 教學 / 成就 / 攤位 =====
+(function () {
+  const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+  on('howto-btn',    () => { Sound.ui(); UI.openScreen('howto-screen'); UI.renderHowTo(); });
+  on('ach-btn',      () => { Sound.ui(); UI.openScreen('ach-screen');   UI.renderAch(); });
+  on('shop-btn',     () => { Sound.ui(); UI.openScreen('shop-screen');  UI.renderShop(); });
+  on('tutorial-btn', () => { Sound.init(); Sound.resume(); Sound.ui(); Tutorial.start(); });
+  ['howto-back', 'ach-back', 'shop-back'].forEach(id => on(id, () => { Sound.uiBack(); UI.backToTitle(); }));
+})();
+
 requestAnimationFrame(loop);
 setupModeSelect();
+UI.renderTitleMeta();
 

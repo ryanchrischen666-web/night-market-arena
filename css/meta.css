@@ -1,0 +1,119 @@
+/* ===== 標題畫面：四個入口 + 等級列 ===== */
+.title-subbtns { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+.btn-mini {
+  font-family: 'Noto Serif TC', serif; font-weight: 700;
+  background: rgba(28,16,44,0.8); color: var(--lantern);
+  border: 2px solid rgba(244,169,60,0.55); border-radius: 10px;
+  padding: 7px 14px; font-size: 13px; cursor: pointer; line-height: 1.25;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+.btn-mini span { display: block; font-family: 'Space Mono', monospace; font-size: 9px; opacity: .6; letter-spacing: .5px; }
+.btn-mini:hover { background: rgba(244,169,60,0.16); border-color: var(--lantern); transform: translateY(-2px); }
+
+.meta-bar { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; justify-content: center; font-family: 'Bungee', sans-serif; font-size: 11px; }
+.meta-lv { color: var(--lantern); letter-spacing: 1px; }
+.meta-lv b { font-size: 15px; }
+.meta-xp { position: relative; width: 190px; height: 15px; background: rgba(0,0,0,0.45); border: 1px solid rgba(244,169,60,0.45); border-radius: 8px; overflow: hidden; }
+.meta-xp-fill { height: 100%; background: linear-gradient(90deg, var(--lantern), var(--lantern-glow)); transition: width .4s ease; }
+.meta-xp-t { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8.5px; color: #fff; text-shadow: 0 1px 2px #000; }
+.meta-coins { color: var(--lantern-glow); letter-spacing: 1px; }
+.meta-coins b { font-size: 14px; }
+.meta-title { font-family: 'Noto Serif TC', serif; color: var(--jade); border: 1px solid var(--jade); border-radius: 8px; padding: 2px 9px; font-size: 11px; }
+.meta-warn { width: 100%; text-align: center; font-family: 'Space Mono', monospace; font-size: 9px; color: #c98; opacity: .75; letter-spacing: .3px; }
+
+/* ===== 怎麼玩 ===== */
+.ht-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; max-width: 780px; margin-top: 14px; }
+.ht-card { background: rgba(28,16,44,0.72); border: 1px solid rgba(244,169,60,0.32); border-radius: 11px; padding: 12px; }
+.ht-ic { font-size: 21px; margin-bottom: 5px; }
+.ht-h { font-family: 'Noto Serif TC', serif; font-weight: 700; color: var(--lantern); font-size: 14px; margin-bottom: 6px; }
+.ht-h span { font-family: 'Space Mono', monospace; font-size: 9.5px; opacity: .55; margin-left: 4px; }
+.ht-b { font-size: 11px; line-height: 1.65; color: rgba(245,230,200,0.9); }
+.ht-b b { color: var(--lantern-glow); }
+
+/* ===== 成就 ===== */
+.ach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; max-width: 800px; margin-top: 12px; }
+.ach { display: flex; gap: 9px; align-items: center; background: rgba(28,16,44,0.7); border: 1px solid rgba(244,169,60,0.22); border-radius: 10px; padding: 9px 10px; }
+.ach.on { border-color: var(--lantern); box-shadow: 0 0 14px rgba(244,169,60,0.22); }
+.ach.off { opacity: .42; }
+.ach-ic { flex: 0 0 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-family: 'Noto Serif TC', serif; font-weight: 900; font-size: 14px; background: rgba(244,169,60,0.16); color: var(--lantern); }
+.ach.on .ach-ic { background: var(--lantern); color: var(--ink); }
+.ach-n { font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 12.5px; color: var(--paper); }
+.ach-n span { font-family: 'Space Mono', monospace; font-size: 8.5px; opacity: .5; margin-left: 3px; }
+.ach-d { font-size: 10px; opacity: .72; margin-top: 2px; }
+
+/* ===== 夜市攤位 ===== */
+.shop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 780px; margin-top: 12px; }
+.shop-item { background: rgba(28,16,44,0.72); border: 2px solid rgba(244,169,60,0.25); border-radius: 11px; padding: 12px 9px; text-align: center; cursor: pointer; transition: transform .15s, border-color .15s; }
+.shop-item:hover { transform: translateY(-3px); }
+.shop-item.buyable { border-color: rgba(244,169,60,0.7); }
+.shop-item.owned { border-color: var(--jade); }
+.shop-item.equipped { border-color: var(--jade); box-shadow: 0 0 16px rgba(74,157,143,0.45); background: rgba(74,157,143,0.14); }
+.shop-item.poor, .shop-item.locked { opacity: .45; cursor: not-allowed; }
+.shop-item.poor:hover, .shop-item.locked:hover { transform: none; }
+.sw { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 8px; }
+.sw-t { border-radius: 9px; background: rgba(244,169,60,0.14); border: 1px solid rgba(244,169,60,0.5); display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 10px; color: var(--lantern); width: 74px; }
+.si-n { font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 12.5px; color: var(--paper); }
+.si-n span { display: block; font-family: 'Space Mono', monospace; font-size: 8.5px; opacity: .5; }
+.si-b { margin-top: 6px; font-family: 'Bungee', sans-serif; font-size: 9.5px; color: var(--lantern); letter-spacing: .5px; line-height: 1.4; }
+.shop-item.equipped .si-b, .shop-item.owned .si-b { color: var(--jade); }
+
+/* ===== 教學提示面板 ===== */
+#tut-panel {
+  position: absolute; left: 50%; top: 58px; transform: translateX(-50%);
+  z-index: 40; width: min(430px, 88%); text-align: center;
+  background: rgba(20,10,34,0.94); border: 2px solid var(--lantern);
+  border-radius: 13px; padding: 11px 16px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+}
+#tut-panel.hidden { display: none !important; }
+.tut-step { font-family: 'Bungee', sans-serif; font-size: 9.5px; color: var(--lantern); letter-spacing: 2px; }
+.tut-cn { font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 18px; color: var(--paper); margin-top: 3px; }
+.tut-en { font-family: 'Space Mono', monospace; font-size: 10.5px; opacity: .62; margin-top: 2px; }
+.tut-tip { font-size: 10px; color: var(--lantern-glow); opacity: .82; margin-top: 6px; }
+.tut-dots { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
+.tut-dots span { width: 8px; height: 8px; border-radius: 50%; background: rgba(245,230,200,0.22); }
+.tut-dots span.done { background: var(--jade); }
+.tut-dots span.now { background: var(--lantern); box-shadow: 0 0 9px var(--lantern); }
+
+/* ===== 成就通知 ===== */
+#toast-wrap { position: absolute; right: 14px; top: 62px; z-index: 90; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(20,10,34,0.96); border: 2px solid var(--lantern);
+  border-radius: 11px; padding: 9px 13px; min-width: 208px;
+  box-shadow: 0 4px 22px rgba(0,0,0,0.55);
+  animation: toastIn .38s cubic-bezier(.2,1.4,.4,1);
+}
+.toast.out { animation: toastOut .38s ease forwards; }
+@keyframes toastIn  { from { opacity: 0; transform: translateX(60px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(60px) scale(.9); } }
+.t-ic { flex: 0 0 32px; height: 32px; border-radius: 8px; background: var(--lantern); color: var(--ink); display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif TC', serif; font-weight: 900; font-size: 14px; }
+.t-h { font-family: 'Bungee', sans-serif; font-size: 8px; color: var(--lantern); letter-spacing: 1.6px; }
+.t-n { font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 13px; color: var(--paper); margin-top: 1px; }
+.t-n span { font-family: 'Space Mono', monospace; font-size: 8.5px; opacity: .5; margin-left: 3px; }
+
+/* ===== 結算獎勵 ===== */
+.rewards { display: flex; gap: 14px; margin-top: 16px; flex-wrap: wrap; justify-content: center; font-family: 'Bungee', sans-serif; font-size: 11px; }
+.rw { background: rgba(28,16,44,0.8); border: 1px solid rgba(244,169,60,0.5); border-radius: 9px; padding: 6px 13px; color: var(--paper); letter-spacing: 1px; }
+.rw-n { color: var(--lantern-glow); font-size: 15px; }
+.rw.rec { border-color: var(--jade); color: var(--jade); }
+.rw.up  { border-color: var(--lantern); color: var(--ink); background: var(--lantern); animation: lvpulse 1s ease infinite; }
+@keyframes lvpulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+/* ===== 英雄卡通關徽章 ===== */
+.hero-card { position: relative; }
+.hero-badge {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  background: var(--lantern); color: var(--ink);
+  font-family: 'Bungee', sans-serif; font-size: 9px; letter-spacing: .5px;
+  padding: 2px 7px; border-radius: 9px;
+  box-shadow: 0 0 10px rgba(244,169,60,0.6);
+}
+
+/* ===== 小螢幕 ===== */
+@media (max-width: 920px) {
+  .ht-grid, .ach-grid { grid-template-columns: repeat(2, 1fr); }
+  .shop-grid { grid-template-columns: repeat(3, 1fr); }
+  .meta-xp { width: 130px; }
+}
+body.touch .title-subbtns { gap: 7px; }
