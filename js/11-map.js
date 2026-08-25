@@ -49,14 +49,24 @@ function ptClear(x, y, pad, blocks) {
 
 function genProps(theme, blocks) {
   const props = [];
-  const cand = [{ x: 110, y: H / 2 }, { x: W - 110, y: H / 2 }, { x: W / 2, y: H / 2 }, { x: 170, y: H - 210 }, { x: W - 170, y: H - 210 }];
-  for (const c of cand) {
-    if (props.length >= 3) break;
+  // 左右兩側一定各有一隻加速鞋（被障礙擋住就上下挪），中間/下方放補血
+  const clearSpot = (x, y) => {
+    for (const dy of [0, -60, 60, -120, 120, -180, 180]) {
+      if (ptClear(x, y + dy, 30, blocks)) return { x, y: y + dy };
+    }
+    return { x, y };
+  };
+  const L = clearSpot(110, H / 2), R = clearSpot(W - 110, H / 2);
+  props.push({ x: L.x, y: L.y, r: 17, cd: 0, maxCd: 9, type: 'boots' });
+  props.push({ x: R.x, y: R.y, r: 17, cd: 0, maxCd: 9, type: 'boots' });
+  const healCand = [{ x: W / 2, y: H / 2 }, { x: 170, y: H - 210 }, { x: W - 170, y: H - 210 }, { x: W / 2, y: 210 }];
+  for (const c of healCand) {
     if (!ptClear(c.x, c.y, 30, blocks)) continue;
-    if (Math.hypot(c.x - W / 2, c.y - (H - 120)) < 80) continue;
-    props.push({ x: c.x, y: c.y, r: 17, cd: 0, maxCd: 9, heal: 22 });
+    if (Math.hypot(c.x - W / 2, c.y - (H - 120)) < 80) continue;   // 別壓到下方出生點
+    if (Math.hypot(c.x - W / 2, c.y - 120) < 80) continue;         // 別壓到上方出生點（連線）
+    props.push({ x: c.x, y: c.y, r: 17, cd: 0, maxCd: 9, heal: 22, type: 'heal' });
+    break;
   }
-  if (props.length < 2) props.push({ x: 90, y: H / 2 - 40, r: 17, cd: 0, maxCd: 9, heal: 22 });
   return props;
 }
 
@@ -268,18 +278,22 @@ function drawFruitBowl(x, y, charged) {
 }
 
 function drawHealProp(hp, theme, t) {
+  if (hp.gone) return;
   const charged = hp.cd <= 0, x = hp.x, y = hp.y;
+  const boots = hp.type === 'boots';
+  const glow = boots ? '127,216,255' : '125,223,107';
   ctx.save();
   if (charged) {
     const pulse = 0.5 + Math.sin(t * 3) * 0.2;
     const g = ctx.createRadialGradient(x, y + 8, 2, x, y + 8, 34);
-    g.addColorStop(0, `rgba(125,223,107,${0.35 * pulse})`); g.addColorStop(1, 'rgba(125,223,107,0)');
+    g.addColorStop(0, `rgba(${glow},${0.35 * pulse})`); g.addColorStop(1, `rgba(${glow},0)`);
     ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y + 10, 32, 14, 0, 0, Math.PI * 2); ctx.fill();
   }
   ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(x + 3, y + 14, 16, 6, 0, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
   ctx.save(); ctx.globalAlpha = charged ? 1 : 0.55;
-  if (theme === 'ninja') drawBasin(x, y, t, charged);
+  if (boots) drawBoots(x, y, t, charged);
+  else if (theme === 'ninja') drawBasin(x, y, t, charged);
   else if (theme === 'kitchen') drawFruitBowl(x, y, charged);
   else drawSoupStand(x, y, t, charged);
   ctx.restore();
@@ -290,6 +304,23 @@ function drawHealProp(hp, theme, t) {
   }
   const hy = y - 32 + (charged ? Math.sin(t * 3) * 3 : 0);
   drawHeart(x, hy, 7, charged ? '#7ddf6b' : 'rgba(150,160,150,0.6)');
+}
+
+// 加速鞋：彈跳的球鞋 + 速度線
+function drawBoots(x, y, t, charged) {
+  const bob = charged ? Math.sin(t * 4) * 4 : 0;
+  ctx.save();
+  ctx.translate(x, y - 6 + bob);
+  if (charged) {
+    ctx.strokeStyle = 'rgba(127,216,255,0.7)'; ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+      const off = ((t * 90 + i * 14) % 34) - 8;
+      ctx.beginPath(); ctx.moveTo(-24 + off, -4 + i * 6); ctx.lineTo(-14 + off, -4 + i * 6); ctx.stroke();
+    }
+  }
+  ctx.font = '26px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('\ud83d\udc5f', 0, 0);   // 👟
+  ctx.restore();
 }
 
 function drawMap() {

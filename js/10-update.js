@@ -143,17 +143,29 @@ function updatePlayerCore(dt) {
   if (player.atkTimer > 0) player.atkTimer -= dt;
   if (player.shield > 0) { player.shield -= dt; if (player.shield <= 0) player.shieldMul = 1; }
 
-  // === Healing props ===
-  if (currentMap) for (const hp of currentMap.props) {
-    if (hp.cd > 0) hp.cd -= dt;
-    if (hp.cd <= 0 && player.hp < player.maxHp && Math.hypot(hp.x - player.x, hp.y - player.y) < hp.r + player.r) {
+  // === Pickups（補血 / 加速鞋）===
+  if (currentMap) for (let _pi = 0; _pi < currentMap.props.length; _pi++) {
+    const hp = currentMap.props[_pi];
+    if (hp.gone) continue;
+    if (hp.cd > 0) { hp.cd -= dt; continue; }
+    if (Math.hypot(hp.x - player.x, hp.y - player.y) >= hp.r + player.r) continue;
+    if (hp.type === 'boots') {
+      if (player.speedBuff > 0.5) continue;          // 加速中就先不吃
+      player.speedBuff = 4; player.speedBuffMul = 1.45;
+      dmgText(player.x, player.y - 34, '加速！', '#7fd8ff');
+      spawnParticles(hp.x, hp.y, 18, '#7fd8ff', { speed: 4, life: 0.6, size: 3 });
+      Sound.heal();
+    } else {
+      if (player.hp >= player.maxHp) continue;
       player.hp = Math.min(player.maxHp, player.hp + hp.heal);
-      hp.cd = hp.maxCd;
       dmgText(player.x, player.y - 34, '+' + hp.heal, '#7ddf6b');
       spawnParticles(hp.x, hp.y, 16, '#7ddf6b', { speed: 3, life: 0.6, size: 3 });
       Sound.heal();
       updateHud();
     }
+    hp.cd = hp.maxCd;
+    // 連線：誰先吃到就是誰的，吃掉就從兩邊的地圖上消失
+    if (window.NetMatch && NetMatch.active && currentMode === 'net') { hp.gone = true; NetMatch.sendProp(_pi); }
   }
 
 

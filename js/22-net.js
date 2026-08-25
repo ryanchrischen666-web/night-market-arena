@@ -84,6 +84,10 @@ const NetMatch = (() => {
       .on('broadcast', { event: 'atk' }, ({ payload }) => replayAttack(payload.a, payload.m || 1, !!payload.b))
       .on('broadcast', { event: 'cast' }, ({ payload }) => replayCast(payload.i, payload.mx, payload.my))
       .on('broadcast', { event: 'dead' }, () => winByRemoteDeath())
+      .on('broadcast', { event: 'prop' }, ({ payload }) => {
+        const pr = currentMap && currentMap.props[payload.k];
+        if (pr && !pr.gone) { pr.gone = true; spawnParticles(pr.x, pr.y, 14, '#bbbbbb', { speed: 3, life: 0.5, size: 3 }); }
+      })
       .on('broadcast', { event: 'rematch' }, () => { rematchTheirs = true; maybeRematch(); })
       .on('broadcast', { event: 'bye' }, () => {
         if (matchOver) { remoteLeft = true; setRematchBtn('對方已離開房間', true); end(null); }
@@ -156,6 +160,14 @@ const NetMatch = (() => {
     const e = enemies[enemies.length - 1];
     e.remote = true;
     e.speed = HEROES[remoteHero].speed;          // 還原玩家速度（AI 版有打折）
+
+    // 面對面出生：id 字串小的在下、大的在上（兩邊算出來一致）
+    const meP = players[0];
+    if (String(Online.id) > String(remoteId)) {
+      meP.x = W / 2; meP.y = 120;
+      e.x = W / 2; e.y = H - 120;
+    }
+    resolveBlocks(meP); resolveBlocks(e);
 
     showMatchBanner('連線對戰 · ONLINE',
       HEROES[myHero].cn + ' vs ' + HEROES[remoteHero].cn);
@@ -253,6 +265,11 @@ const NetMatch = (() => {
   function sendAttack(ang, mul, burn) {
     if (!active || !started) return;
     try { ch.send({ type: 'broadcast', event: 'atk', payload: { a: ang, m: mul, b: burn ? 1 : 0 } }); } catch (e) {}
+  }
+
+  function sendProp(k) {
+    if (!active || !started) return;
+    try { ch.send({ type: 'broadcast', event: 'prop', payload: { k } }); } catch (e) {}
   }
 
   function sendCast(i, mx, my) {
@@ -407,7 +424,7 @@ const NetMatch = (() => {
     }
   }
 
-  return { start, end, _interp, sendAttack, sendCast, sendDead, leaveRoom, confirmHero,
+  return { start, end, _interp, sendAttack, sendCast, sendProp, sendDead, leaveRoom, confirmHero,
     get picking() { return picking; }, get active() { return active; } };
 })();
 
