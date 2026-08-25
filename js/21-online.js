@@ -20,11 +20,13 @@ const Online = (() => {
   let status = 'off';   // off | connecting | online | error
 
   function myId() {
+    // 用 sessionStorage：每個分頁一個身分，重新整理不變。
+    // （放 localStorage 會讓同瀏覽器的分頁共用身分，自己測試時互相看不到）
     let id = null;
-    try { id = localStorage.getItem(ID_KEY); } catch (e) {}
+    try { id = sessionStorage.getItem(ID_KEY); } catch (e) {}
     if (!id) {
       id = (crypto.randomUUID ? crypto.randomUUID() : 'u' + Math.random().toString(36).slice(2));
-      try { localStorage.setItem(ID_KEY, id); } catch (e) {}
+      try { sessionStorage.setItem(ID_KEY, id); } catch (e) {}
     }
     return id;
   }
