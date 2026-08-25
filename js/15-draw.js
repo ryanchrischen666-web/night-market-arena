@@ -8,16 +8,7 @@ function drawPlayer() {
     drawCharacter(pl, true);
     ctx.globalAlpha = 1;
     player = op;
-    if (coop) {
-      const col = pl.idx === 0 ? '#ffd86b' : '#6fd6ff';
-      ctx.strokeStyle = col; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.arc(pl.x, pl.y, pl.r + 7, 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = col; ctx.font = 'bold 11px "Bungee", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-      ctx.fillText(pl.idx === 0 ? 'P1' : 'P2', pl.x, pl.y - pl.r - 13);
-    }
-    const aimx = (pl.controls && pl.controls.mouse) ? mouse.x : pl.x + Math.cos(pl.face) * 240;
-    const aimy = (pl.controls && pl.controls.mouse) ? mouse.y : pl.y + Math.sin(pl.face) * 240;
-    const ang = Math.atan2(aimy - pl.y, aimx - pl.x);
+    const ang = Math.atan2(mouse.y - pl.y, mouse.x - pl.x);
     ctx.strokeStyle = 'rgba(244, 169, 60, 0.6)'; ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(pl.x + Math.cos(ang) * (pl.r + 4), pl.y + Math.sin(ang) * (pl.r + 4));

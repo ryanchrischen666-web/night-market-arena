@@ -18,7 +18,6 @@ const ACHIEVEMENTS = [
   { id: 'boss_slayer',cn: '屠鍋英雄',   en: 'Cauldron Slayer',icon: '鍋', desc: '打倒滷味鍋大王' },
   { id: 'flawless',   cn: '毫髮無傷',   en: 'Flawless',       icon: '完', desc: '滿血通關一場戰鬥' },
   { id: 'speed',      cn: '速戰速決',   en: 'Lightning',      icon: '快', desc: '60 秒內通關' },
-  { id: 'duo',        cn: '雙人同心',   en: 'Better Together',icon: '雙', desc: '和朋友一起通關' },
   { id: 'taster',     cn: '淺嚐三味',   en: 'Three Flavors',  icon: '三', desc: '用 3 位不同英雄各贏一場' },
   { id: 'allrounder', cn: '八味俱全',   en: 'Full Menu',      icon: '八', desc: '用全部 8 位英雄各贏一場' },
   { id: 'kills50',    cn: '夜市殺手',   en: 'Night Hunter',   icon: '50', desc: '累計擊倒 50 位對手' },
@@ -87,7 +86,6 @@ const Progress = (() => {
     if (c.victory) {
       s.wins++;
       s.heroWins[c.heroId] = (s.heroWins[c.heroId] || 0) + 1;
-      if (c.coop && c.hero2) s.heroWins[c.hero2] = (s.heroWins[c.hero2] || 0) + 1;
       s.modeWins[c.mode] = (s.modeWins[c.mode] || 0) + 1;
 
       const key = c.heroId + '|' + c.mode;
@@ -98,7 +96,6 @@ const Progress = (() => {
       grant('first_win', unlocked);
       if (c.mode === 'boss') grant('boss_slayer', unlocked);
       if (c.mode === '1v3') grant('swarm', unlocked);
-      if (c.coop) grant('duo', unlocked);
       if (c.hpLeft >= c.maxHp) grant('flawless', unlocked);
       if (c.seconds <= 60) grant('speed', unlocked);
       const distinct = Object.keys(s.heroWins).length;

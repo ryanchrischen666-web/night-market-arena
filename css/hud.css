@@ -53,14 +53,3 @@
 #audio-controls button{background:rgba(28,16,44,0.72);color:#f4a93c;border:1px solid rgba(244,169,60,0.5);border-radius:18px;padding:6px 13px;font-size:12px;font-weight:700;letter-spacing:.8px;cursor:pointer;backdrop-filter:blur(4px);transition:opacity .15s,color .15s,border-color .15s}
 #audio-controls button:hover{border-color:rgba(244,169,60,0.9)}
 #audio-controls button.off{color:#766c84;border-color:rgba(120,110,130,0.4);opacity:.55}
-  #hud-p2 { position: absolute; top: 54px; right: 14px; width: 210px; z-index: 30; text-align: right; font-family: 'Bungee', sans-serif; }
-  #hud-p2.hidden { display: none; }
-  #hud-p2.down { opacity: 0.5; filter: grayscale(1); }
-  #hud-p2 .p2-name { font-size: 12px; color: #8fe1ff; letter-spacing: 1px; margin-bottom: 5px; text-shadow: 0 1px 3px #000; }
-  #hud-p2 .hp-bar.p2bar { height: 20px; position: static; width: 100%; }
-  #hud-p2 .hp-fill { background: linear-gradient(90deg, #2f8fd0, #6fd6ff) !important; }
-  .p2-cds { display: flex; gap: 6px; justify-content: flex-end; margin-top: 7px; }
-  .p2-cds span { width: 20px; height: 20px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; background: rgba(111,214,255,0.22); border: 1px solid #6fd6ff; box-shadow: 0 0 8px rgba(111,214,255,0.35); transition: opacity .15s, background .15s, border-color .15s; }
-  .p2-cds span.cooling { background: rgba(58,70,84,0.5); border-color: #3a4654; opacity: 0.4; box-shadow: none; }
-  #coop-toggle { margin-top: 6px; }
-  #coop-toggle.on { background: linear-gradient(90deg, #2f8fd0, #6fd6ff); color: #04121c; border-color: #6fd6ff; }

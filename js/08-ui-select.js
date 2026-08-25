@@ -29,7 +29,7 @@ function renderHeroCards() {
       document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
       document.getElementById('confirm-hero-btn').classList.remove('hidden');
-      if (pickingP2) selectedHero2 = id; else selectedHero = id;
+      selectedHero = id;
     });
     grid.appendChild(card);
     renderHeroIcon(card.querySelector('.hero-cv'), id);

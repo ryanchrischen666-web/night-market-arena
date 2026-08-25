@@ -4,7 +4,7 @@
 let boss = null;
 
 function spawnBoss() {
-  const hp = coop ? 2700 : 1700;
+  const hp = 1700;
   boss = {
     isBoss: true, id: 'boss', x: W / 2, y: 150, r: 56,
     color: '#6b4a2a', name: '滷味鍋大王', nameEn: 'The Cauldron King',

@@ -2,7 +2,6 @@
 
 // ============ UPDATE LOOP ============
 const P1_CTRL = { up: 'w', down: 's', left: 'a', right: 'd', q: 'q', e: 'e', r: 'r', mouse: true };
-const P2_CTRL = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', q: 'Comma', e: 'Period', r: 'Slash', attack: 'ShiftRight', mouse: false };
 
 function castFor(p, fn) {
   if (!p) return;
@@ -20,7 +19,7 @@ function nearestPlayer(e) {
 
 function makePlayer(heroId, idx) {
   const h = HEROES[heroId];
-  const px = !coop ? W/2 : (idx === 0 ? W * 0.38 : W * 0.62);
+  const px = W / 2;
   return {
     x: px, y: H - 120,
     r: 18, idx, id: heroId, color: h.color, emoji: h.emoji,
@@ -40,31 +39,17 @@ function makePlayer(heroId, idx) {
     dashTo: null,
     isPlayer: true,
     aim: { x: px, y: 0 },
-    controls: idx === 0 ? P1_CTRL : P2_CTRL,
+    controls: P1_CTRL,
   };
 }
 
-// Run the shared per-player update for one player by repointing the global
-// `player` (and, for P2, virtualizing arrow/right-shift input into the
-// canonical WASD/mouse slots) so the existing core logic Just Works.
+// 把全域 `player` 指向這名玩家，讓既有的核心邏輯直接沿用。
 function updatePlayer(p, dt) {
   player = p;
   const _vpx = p.x, _vpy = p.y;
-  const C = p.controls;
-  if (C.mouse) {
-    if (touchMode && p.idx === 0) { const ap = autoAimPoint(p); mouse.x = ap.x; mouse.y = ap.y; }
-    p.aim.x = mouse.x; p.aim.y = mouse.y;
-  }
-  else { p.aim.x = p.x + Math.cos(p.face) * 240; p.aim.y = p.y + Math.sin(p.face) * 240; }
-  let sv = null;
-  if (!C.mouse) {
-    sv = { w: keys['w'], a: keys['a'], s: keys['s'], d: keys['d'], md: mouse.down, mx: mouse.x, my: mouse.y };
-    keys['w'] = keys[C.up]; keys['s'] = keys[C.down]; keys['a'] = keys[C.left]; keys['d'] = keys[C.right];
-    mouse.down = !!keys[C.attack]; mouse.x = p.aim.x; mouse.y = p.aim.y;
-  }
+  if (touchMode) { const ap = autoAimPoint(p); mouse.x = ap.x; mouse.y = ap.y; }
+  p.aim.x = mouse.x; p.aim.y = mouse.y;
   updatePlayerCore(dt);
-  if (sv) { keys['w'] = sv.w; keys['a'] = sv.a; keys['s'] = sv.s; keys['d'] = sv.d; mouse.down = sv.md; mouse.x = sv.mx; mouse.y = sv.my; }
-  if (!C.mouse) p.face = p.facing;
   p.vx = (p.vx || 0) * 0.5 + (p.x - _vpx) * 0.5;
   p.vy = (p.vy || 0) * 0.5 + (p.y - _vpy) * 0.5;
   player = players[0];

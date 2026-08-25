@@ -17,12 +17,11 @@ function loop(now) {
 
 // ============ FLOW ============
 function setSelectHeading(t) { const el = document.getElementById('select-title'); if (el) el.textContent = t; }
-function p1Heading() { return coopSel ? '玩家 1 \u00b7 選擇你的英雄' : '選擇英雄 \u00b7 Choose Your Hero'; }
 function resetHeroPick() {
-  pickingP2 = false; selectedHero = null; selectedHero2 = null;
+  selectedHero = null;
   document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('confirm-hero-btn').classList.add('hidden');
-  setSelectHeading(p1Heading());
+  setSelectHeading('選擇英雄 \u00b7 Choose Your Hero');
 }
 function goToModeScreen() {
   Sound.ui();
@@ -33,7 +32,7 @@ function goToModeScreen() {
   document.getElementById('begin-btn').classList.add('hidden');
   document.getElementById('vs-preview').classList.remove('show');
   const mt = document.querySelector('#mode-screen .select-title');
-  if (mt) mt.textContent = coopSel ? '選擇敵群 \u00b7 Choose the Swarm' : '選擇賠注 \u00b7 Pick Your Odds';
+  if (mt) mt.textContent = '選擇賠注 \u00b7 Pick Your Odds';
 }
 document.getElementById('start-btn').addEventListener('click', () => {
   Sound.init(); Sound.resume(); Sound.ui();
@@ -42,30 +41,9 @@ document.getElementById('start-btn').addEventListener('click', () => {
   resetHeroPick();
   renderHeroCards();
 });
-document.getElementById('coop-toggle').addEventListener('click', () => {
-  coopSel = !coopSel; Sound.ui();
-  const ct = document.getElementById('coop-toggle');
-  ct.textContent = coopSel ? '雙人 2P：ON' : '雙人 2P：OFF';
-  ct.classList.toggle('on', coopSel);
-  resetHeroPick();
-});
 document.getElementById('confirm-hero-btn').addEventListener('click', () => {
-  if (!pickingP2) {
-    if (!selectedHero) return;
-    if (coopSel) {
-      Sound.ui();
-      pickingP2 = true; selectedHero2 = null;
-      document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('selected'));
-      document.getElementById('confirm-hero-btn').classList.add('hidden');
-      setSelectHeading('玩家 2 \u00b7 選擇你的英雄');
-      return;
-    }
-    goToModeScreen();
-  } else {
-    if (!selectedHero2) return;
-    pickingP2 = false;
-    goToModeScreen();
-  }
+  if (!selectedHero) return;
+  goToModeScreen();
 });
 document.getElementById('back-to-hero-btn').addEventListener('click', () => {
   Sound.uiBack();
@@ -75,15 +53,14 @@ document.getElementById('back-to-hero-btn').addEventListener('click', () => {
 });
 document.getElementById('begin-btn').addEventListener('click', () => {
   if (!selectedHero || !selectedMode) return;
-  if (coopSel && !selectedHero2) return;
   Sound.resume(); Sound.ui();
-  startMatch(selectedHero, selectedMode, { coop: coopSel, hero2: selectedHero2 });
+  startMatch(selectedHero, selectedMode, {});
 });
 document.getElementById('restart-btn').addEventListener('click', () => {
   Sound.ui();
   document.getElementById('end-screen').classList.add('hidden');
   document.getElementById('title-screen').classList.remove('hidden');
-  selectedHero = null; selectedMode = null; selectedHero2 = null; pickingP2 = false;
+  selectedHero = null; selectedMode = null;
   Tutorial.stop();
   UI.renderTitleMeta();
 });
@@ -128,7 +105,6 @@ function initTouch() {
     if (touchMode) return;
     touchMode = true;
     document.body.classList.add('touch');
-    const ct = document.getElementById('coop-toggle'); if (ct) ct.style.display = 'none';
     checkOrient();
   }
   window.addEventListener('touchstart', enableTouch, { passive: true });
