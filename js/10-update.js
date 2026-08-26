@@ -420,7 +420,7 @@ function update(dt) {
   // Cleanup dead, check victory
   player = players[0];
   enemies = enemies.filter(e => !e.dead);
-  if (state === 'playing' && currentMode !== 'tutorial') {
+  if (state === 'playing' && currentMode !== 'tutorial' && !(window.NetMatch && NetMatch.inMatch)) {
     if (currentMode === 'boss') {
       if (!enemies.some(e => e.isBoss)) { enemies = []; state = 'won'; setTimeout(() => endGame(true), 800); }
     } else if (enemies.length === 0) {

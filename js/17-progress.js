@@ -75,6 +75,7 @@ const Progress = (() => {
       if (c.mode === 'boss') coins += 150;
       else if (c.mode === '1v3') coins += 30;
       else if (c.mode === '1v2') coins += 15;
+      else if (c.mode === 'net') coins += 40;   // 連線贏真人比較難，多給點
     }
     // --- 經驗 ---
     let xp = (c.victory ? 60 : 20) + c.kills * 5;

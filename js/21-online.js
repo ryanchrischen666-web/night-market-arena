@@ -116,7 +116,7 @@ const Online = (() => {
     if (!p) {
       p = document.createElement('div');
       p.id = 'online-panel';
-      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v13</span></h4>'
+      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v14</span></h4>'
                   + '<ul id="online-list"></ul><div class="om"></div>'
                   + '<div style="display:flex;gap:6px"><button id="online-mkroom-btn">開房間</button>'
                   + '<button id="online-joroom-btn">加入房間</button></div>'
@@ -137,13 +137,14 @@ const Online = (() => {
     return p;
   }
 
-  const ACT = { title: '在大廳', select: '選英雄', mode: '挑賠注', playing: '對戰中', boss: '打魔王', ended: '結算中' };
+  const ACT = { title: '在大廳', select: '選英雄', mode: '挑賠注', playing: '對戰中', boss: '打魔王', ended: '結算中', room: '房間中' };
 
   // 自動偵測遊戲狀態，不必去改 09-match.js / 20-main.js
   function autoActivity() {
     if (!me) return;
     let a = 'title';
-    if (typeof state !== 'undefined') {
+    if (window.NetMatch && NetMatch.active && !NetMatch.inMatch) a = 'room';
+    else if (typeof state !== 'undefined') {
       if (state === 'playing') a = (typeof selectedMode !== 'undefined' && selectedMode === 'boss') ? 'boss' : 'playing';
       else if (state === 'ended') a = 'ended';
       else if (!document.getElementById('mode-screen').classList.contains('hidden')) a = 'mode';

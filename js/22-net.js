@@ -25,6 +25,7 @@ const NetMatch = (() => {
   let inMatch = false, matchOver = false, matchNo = 0;
   let roster = [];           // 開打瞬間的名單
   let bufs = {}, hps = {};   // per-id 位置快照 / 最新血量
+  let lastSeen = {};         // per-id 最後收到封包的時間（斷線偵測）
   let sendTimer = null;
 
   const myId = () => Online.id;
@@ -61,6 +62,7 @@ const NetMatch = (() => {
       .on('broadcast', { event: 'start' }, ({ payload }) => beginFromRoster(payload.roster, payload.m))
       .on('broadcast', { event: 'pos' }, ({ payload }) => {
         const b = bufs[payload.u] || (bufs[payload.u] = []);
+        lastSeen[payload.u] = performance.now();
         b.push({ t: performance.now(), x: payload.x, y: payload.y, f: payload.f, d: payload.d });
         if (b.length > 40) b.shift();
         if (payload.h != null) hps[payload.u] = payload.h;
@@ -79,6 +81,7 @@ const NetMatch = (() => {
           if (iAmHost) openLobby();
           else setTimeout(() => {
             if (!members.some(m => m.host)) { note('找不到房間 ' + code + '（房主不在）'); leaveRoom(); }
+            else if (members.length > 6) { note('房間已滿（6 人）'); leaveRoom(); }
             else openLobby();
           }, 1200);
         } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') {
@@ -102,6 +105,11 @@ const NetMatch = (() => {
       .sort((a, b) => a.id < b.id ? -1 : 1);
     if (lobbyOpen) {
       if (!iAmHost && !members.some(m => m.host)) { note('房主離開了，房間解散'); leaveRoom(); return; }
+      if (!iAmHost && members.length > 6) {
+        const noHost = members.filter(m => !m.host).map(m => m.id).sort();
+        const overflow = noHost.slice(5);            // 房主 + 5 人 = 6，超過的踢
+        if (overflow.includes(myId())) { note('房間已滿（6 人）'); leaveRoom(); return; }
+      }
       renderLobby();
     }
   }
@@ -225,6 +233,9 @@ const NetMatch = (() => {
     const my = roster.find(x => x.id === myId());
     if (!my) { note('這場沒有你，等下一場'); return; }
     lobbyOpen = false; inMatch = true; matchOver = false; bufs = {}; hps = {};
+    lastSeen = {};
+    const _t0 = performance.now();
+    for (const m of r) if (m.id !== myId()) lastSeen[m.id] = _t0;
 
     // 種子地圖：房號 + 場次
     let seed = 2166136261 ^ mn;
@@ -263,6 +274,18 @@ const NetMatch = (() => {
 
   function tick() {
     if (!ch || !inMatch || state !== 'playing') return;
+    // 斷線偵測：8 秒沒動靜就當作離線陣亡（presence leave 有時來得很慢）
+    const nowT = performance.now();
+    for (const m of roster) {
+      if (m.id === myId() || isDeadId(m.id)) continue;
+      if (lastSeen[m.id] && nowT - lastSeen[m.id] > 8000) {
+        const e2 = enemies.find(x => x.remote && x.netId === m.id);
+        showMatchBanner('有人斷線', m.name || '');
+        if (e2) { e2.dead = true; spawnParticles(e2.x, e2.y, 16, '#999', { speed: 3, life: 0.5, size: 3 }); }
+        lastSeen[m.id] = 0;
+        winCheck(); updateHud();
+      }
+    }
     const p = players[0];
     if (!p) return;
     try {
@@ -332,7 +355,8 @@ const NetMatch = (() => {
   function isDeadId(id) {
     if (id === myId()) return players[0] ? players[0].dead : false;
     const e = enemies.find(x => x.remote && x.netId === id);
-    return !e || e.dead;
+    if (e) return !!e.dead;
+    return true;   // 實體不在了（死亡清場或斷線移除）
   }
 
   function winCheck() {

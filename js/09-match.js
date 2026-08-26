@@ -139,6 +139,7 @@ function showMatchBanner(text, sub = '') {
 }
 
 function endGame(victory) {
+  if (state === 'ended') return;   // 防止重複結算（獎勵發兩次）
   state = 'ended';
   document.body.classList.remove('playing');
   Sound.stopMusic(); if (victory) Sound.win(); else Sound.lose();

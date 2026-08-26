@@ -18,6 +18,7 @@ function loop(now) {
 
 // ============ PAUSE ============
 function setPaused(on) {
+  if (on && window.NetMatch && NetMatch.inMatch) { showMatchBanner('連線中無法暫停', '對手不會等你！'); return; }
   if (state !== 'playing' || paused === on) return;
   paused = on;
   const el = document.getElementById('pause-screen');

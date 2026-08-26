@@ -53,6 +53,7 @@ function nearestEnemy(x, y, maxR = Infinity) {
   let best = null, bd = maxR;
   for (const e of enemies) {
     if (e.dead) continue;
+    if (e.remote && !e.hostileNet) continue;   // 隊友不是目標
     const d = Math.hypot(e.x - x, e.y - y);
     if (d < bd) { bd = d; best = e; }
   }
