@@ -34,6 +34,7 @@ function setPaused(on) {
 
 // 放棄這一場：不結算、不發獎勵，直接回標題
 function quitMatch() {
+  if (window.NetMatch && NetMatch.active) NetMatch.leaveRoom();
   paused = false;
   document.getElementById('pause-screen').classList.add('hidden');
   document.getElementById('hud').classList.add('hidden');

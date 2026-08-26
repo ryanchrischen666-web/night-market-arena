@@ -95,7 +95,7 @@ function damagePlayer(dmg) {
   addShake(big ? 6.5 : 3.5);
   if (big) addHitStop(0.05);
   if (player.hp <= 0) { player.hp = 0; player.dead = true;
-    if (window.NetMatch && NetMatch.active) NetMatch.sendDead(); spawnRing(player.x, player.y, '#ff4d5e', 52); addShake(9); addHitStop(0.12); if (players.every(pl => pl.dead)) endGame(false); }
+    if (window.NetMatch && NetMatch.inMatch) NetMatch.onLocalDeath(); spawnRing(player.x, player.y, '#ff4d5e', 52); addShake(9); addHitStop(0.12); if (players.every(pl => pl.dead) && !(window.NetMatch && NetMatch.inMatch)) endGame(false); }
   updateHud();
 }
 

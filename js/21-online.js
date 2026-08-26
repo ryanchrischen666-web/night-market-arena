@@ -17,8 +17,6 @@ const Online = (() => {
   const NAME_KEY = 'nma_online_name';
   const ID_KEY   = 'nma_online_id';
   let sb = null, channel = null, me = null, peers = [];
-  let invites = {};      // 收到的邀請 fromId -> {name,t}
-  let sentTo = null;     // 我送出邀請的對象 id
   let status = 'off';   // off | connecting | online | error
 
   function myId() {
@@ -57,22 +55,6 @@ const Online = (() => {
 
     channel = sb.channel(ONLINE_CFG.room, { config: { presence: { key: id } } });
     channel
-      .on('broadcast', { event: 'invite' }, ({ payload }) => {
-        if (payload.to !== id) return;
-        console.log('[NET] 收到邀請 from', payload.from);
-        invites[payload.from] = { name: payload.name || '?', t: Date.now() };
-        render();
-      })
-      .on('broadcast', { event: 'invite-accept' }, ({ payload }) => {
-        if (payload.to !== id) return;
-        console.log('[NET] 對方接受了邀請');
-        if (window.NetMatch) NetMatch.start(payload.room, payload.from);
-        else console.log('[NET] 錯誤：NetMatch 不存在');
-      })
-      .on('broadcast', { event: 'invite-decline' }, ({ payload }) => {
-        if (payload.to !== id) return;
-        sentTo = null; render();
-      })
       .on('presence', { event: 'sync' }, () => {
         const st = channel.presenceState();
         peers = Object.entries(st)
@@ -134,33 +116,22 @@ const Online = (() => {
     if (!p) {
       p = document.createElement('div');
       p.id = 'online-panel';
-      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v12</span></h4>'
+      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v13</span></h4>'
                   + '<ul id="online-list"></ul><div class="om"></div>'
+                  + '<div style="display:flex;gap:6px"><button id="online-mkroom-btn">開房間</button>'
+                  + '<button id="online-joroom-btn">加入房間</button></div>'
                   + '<button id="online-name-btn">改名字</button>';
       (document.getElementById('stage') || document.body).appendChild(p);
-      p.addEventListener('click', (ev) => {
-        const b = ev.target.closest('button[data-act]');
-        if (!b) return;
-        const act = b.dataset.act, pid = b.dataset.id;
-        const idMe = myId();
-        if (act === 'inv') {
-          sentTo = pid;
-          send('invite', { to: pid, from: idMe, name: me ? me.name : '?' });
-          render();
-        } else if (act === 'acc') {
-          console.log('[NET] 按下接受', pid);
-          const room = [idMe, pid].sort().join('~');
-          send('invite-accept', { to: pid, from: idMe, room });
-          delete invites[pid];
-          if (window.NetMatch) NetMatch.start(room, pid);
-        } else if (act === 'dec') {
-          send('invite-decline', { to: pid, from: idMe });
-          delete invites[pid]; render();
-        }
-      });
       p.querySelector('#online-name-btn').addEventListener('click', () => {
         const n = prompt('你的名字？', myName() || '');
         if (n && n.trim()) { setName(n.trim().slice(0, 16)); render(); }
+      });
+      p.querySelector('#online-mkroom-btn').addEventListener('click', () => {
+        if (window.NetMatch) { Sound.init(); Sound.resume(); Sound.ui(); NetMatch.createRoom(); }
+      });
+      p.querySelector('#online-joroom-btn').addEventListener('click', () => {
+        const c = prompt('輸入 4 位數房間代號：');
+        if (c && window.NetMatch) { Sound.init(); Sound.resume(); Sound.ui(); NetMatch.joinRoom(c); }
       });
     }
     return p;
@@ -193,23 +164,11 @@ const Online = (() => {
       ? `線上 ${peers.length + 1}`
       : status === 'connecting' ? '連線中…' : status === 'error' ? '連不上' : '離線';
 
-    // 過期的邀請（30 秒）自動消失
-    const nowT = Date.now();
-    Object.keys(invites).forEach(k => { if (nowT - invites[k].t > 30000) delete invites[k]; });
-
     const ul = p.querySelector('#online-list');
     const rows = [];
-    Object.entries(invites).forEach(([fid, inv]) => {
-      rows.push(`<li class="invite-row"><b>${esc(inv.name)}</b> 邀請你！`
-        + `<span><button data-act="acc" data-id="${fid}">接受</button>`
-        + `<button data-act="dec" data-id="${fid}">拒絕</button></span></li>`);
-    });
     if (me) rows.push(`<li><b>${esc(me.name)}（你）</b><span class="act">${ACT[me.activity] || ''}</span></li>`);
     peers.forEach(x => {
-      const btn = (window.NetMatch && NetMatch.active) ? ''
-        : (sentTo === x.id ? '<span class="act">已邀…</span>'
-                           : `<button data-act="inv" data-id="${x.id}">邀請</button>`);
-      rows.push(`<li>${esc(x.name || '?')}<span class="act">${ACT[x.activity] || ''}</span>${btn}</li>`);
+      rows.push(`<li>${esc(x.name || '?')}<span class="act">${ACT[x.activity] || ''}</span></li>`);
     });
     ul.innerHTML = rows.join('') || '<li style="opacity:.5">還沒有人…</li>';
     p.querySelector('.om').textContent = peers.length ? '' : '把網址傳給朋友，他一開就會出現在這裡。';

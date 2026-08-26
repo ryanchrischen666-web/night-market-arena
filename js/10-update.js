@@ -478,7 +478,7 @@ function update(dt) {
           else { p.life = 0; break; }
         }
       }
-    } else {
+    } else if (p.team === 'enemy') {
       // Enemy projectile vs players
       for (const pl of players) {
         if (pl.dead) continue;

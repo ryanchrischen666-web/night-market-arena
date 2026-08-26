@@ -133,6 +133,22 @@
     <button class="btn btn-secondary" id="shop-back">← 回標題 Back</button>
   </div>
 
+  <!-- 房間大廳 -->
+  <div id="room-screen" class="screen hidden">
+    <div class="select-title">房間 <span id="room-code-big">0000</span></div>
+    <div class="select-sub">把 4 位數代號告訴朋友，他們按「加入房間」輸入就能進來</div>
+    <div class="room-teams">
+      <div class="room-team rt-red"><h5>🔴 紅隊 RED</h5><ul id="team0-list"></ul><button class="btn-mini room-join-team" data-team="0">加入紅隊<span>Join Red</span></button></div>
+      <div class="room-team rt-blue"><h5>🔵 藍隊 BLUE</h5><ul id="team1-list"></ul><button class="btn-mini room-join-team" data-team="1">加入藍隊<span>Join Blue</span></button></div>
+    </div>
+    <div class="room-picker" id="room-picker"></div>
+    <div class="room-actions">
+      <button class="btn" id="room-ready-btn">準備 · Ready</button>
+      <button class="btn hidden" id="room-start-btn">開始遊戲 · Start</button>
+      <button class="btn btn-secondary" id="room-leave-btn">離開房間 · Leave</button>
+    </div>
+  </div>
+
   <!-- 教學提示 -->
   <div id="tut-panel" class="hidden"></div>
 
@@ -162,29 +178,29 @@
 <div id="rotate-hint"><div class="rh"><span class="ph">📱</span>Rotate to landscape<small>Night Market Arena plays best sideways</small></div></div>
 
 <!-- 載入順序即正確性：classic script 不跨檔 hoist，請勿調換 -->
-<script src="js/00-abilities.js?v12"></script>
-<script src="js/01-heroes.js?v12"></script>
-<script src="js/02-modes.js?v12"></script>
-<script src="js/03-state.js?v12"></script>
-<script src="js/04-input.js?v12"></script>
-<script src="js/05-util.js?v12"></script>
-<script src="js/06-sound.js?v12"></script>
-<script src="js/07-enemy-ai.js?v12"></script>
-<script src="js/08-ui-select.js?v12"></script>
-<script src="js/09-match.js?v12"></script>
-<script src="js/10-update.js?v12"></script>
-<script src="js/11-map.js?v12"></script>
-<script src="js/12-render.js?v12"></script>
-<script src="js/13-art.js?v12"></script>
-<script src="js/14-boss.js?v12"></script>
-<script src="js/15-draw.js?v12"></script>
-<script src="js/16-save.js?v12"></script>
-<script src="js/17-progress.js?v12"></script>
-<script src="js/18-tutorial.js?v12"></script>
-<script src="js/19-ui-meta.js?v12"></script>
-<script src="js/20-main.js?v12"></script>
-<script src="js/21-online.js?v12"></script>
-<script src="js/22-net.js?v12"></script>
+<script src="js/00-abilities.js?v13"></script>
+<script src="js/01-heroes.js?v13"></script>
+<script src="js/02-modes.js?v13"></script>
+<script src="js/03-state.js?v13"></script>
+<script src="js/04-input.js?v13"></script>
+<script src="js/05-util.js?v13"></script>
+<script src="js/06-sound.js?v13"></script>
+<script src="js/07-enemy-ai.js?v13"></script>
+<script src="js/08-ui-select.js?v13"></script>
+<script src="js/09-match.js?v13"></script>
+<script src="js/10-update.js?v13"></script>
+<script src="js/11-map.js?v13"></script>
+<script src="js/12-render.js?v13"></script>
+<script src="js/13-art.js?v13"></script>
+<script src="js/14-boss.js?v13"></script>
+<script src="js/15-draw.js?v13"></script>
+<script src="js/16-save.js?v13"></script>
+<script src="js/17-progress.js?v13"></script>
+<script src="js/18-tutorial.js?v13"></script>
+<script src="js/19-ui-meta.js?v13"></script>
+<script src="js/20-main.js?v13"></script>
+<script src="js/21-online.js?v13"></script>
+<script src="js/22-net.js?v13"></script>
 
 
 
