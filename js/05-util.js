@@ -60,6 +60,29 @@ function nearestEnemy(x, y, maxR = Infinity) {
   return best;
 }
 
+// ===== Crowd-control fairness =====
+// Every stun / freeze goes through here so nobody can be chain-locked to death.
+// Each application on the same unit inside CC_DR_WINDOW lands shorter than the
+// last, and the 4th one inside that window is ignored entirely.
+const CC_MAX_DURATION = 1.4;   // hard cap on any single stun/freeze
+const CC_DR_WINDOW = 6;        // CC-free seconds before diminishing returns reset
+const CC_DR_SCALE = [1, 0.5, 0.25, 0];
+
+function applyCC(unit, prop, dur) {
+  if (!unit || unit.dead) return 0;
+  if ((unit.ccDrTimer || 0) <= 0) unit.ccDr = 0;
+  const tier = Math.min(unit.ccDr || 0, CC_DR_SCALE.length - 1);
+  const scaled = Math.min(dur, CC_MAX_DURATION) * CC_DR_SCALE[tier];
+  unit.ccDr = (unit.ccDr || 0) + 1;
+  unit.ccDrTimer = CC_DR_WINDOW;
+  if (scaled <= 0) { dmgText(unit.x, unit.y - 46, '\u514d\u75ab', '#9fd7ff'); return 0; }
+  unit[prop] = Math.max(unit[prop] || 0, scaled);
+  return scaled;
+}
+
+function applyStun(unit, dur) { return applyCC(unit, 'stun', dur); }
+function applyFreeze(unit, dur) { return applyCC(unit, 'frozen', dur); }
+
 function damageEnemy(enemy, dmg, opts = {}) {
   if (enemy.remote) return;   // 連線對手：第一階段先不做傷害同步
   if (enemy.dead) return;

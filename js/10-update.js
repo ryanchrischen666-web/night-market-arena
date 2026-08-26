@@ -104,7 +104,7 @@ function updatePlayerCore(dt) {
         if (e.dead || e._chargedHit) continue;
         if (Math.hypot(e.x - player.x, e.y - player.y) < e.r + player.r + 4) {
           damageEnemy(e, player.dashTo.dmg || 50);
-          e.stun = Math.max(e.stun || 0, player.dashTo.stunDur != null ? player.dashTo.stunDur : 1);
+          applyStun(e, player.dashTo.stunDur != null ? player.dashTo.stunDur : 1);
           if (player.dashTo.slow) { e.slow = Math.max(e.slow || 0, player.dashTo.slow); e.slowMul = player.dashTo.slowMul || 0.5; }
           e._chargedHit = true;
           spawnParticles(e.x, e.y, 18, player.dashTo.fx || '#c46a3a', { speed: 5, life: 0.6, size: 4 });
@@ -115,8 +115,8 @@ function updatePlayerCore(dt) {
       if (player.dashTo.leap) {
         const target = player.dashTo.target;
         if (target && !target.dead) {
-          target.stun = Math.max(target.stun || 0, 2);
-          damageEnemy(target, 60);
+          applyStun(target, 0.9);
+          damageEnemy(target, 45);
           spawnParticles(target.x, target.y, 20, '#cc2936', { speed: 5, life: 0.6, size: 5 });
           spawnRing(target.x, target.y, '#ff5a4a', 56); addShake(8); addHitStop(0.08);
           Sound.slam();
@@ -264,6 +264,7 @@ function update(dt) {
       e.x = clamp(e.x, 20, W - 20); e.y = clamp(e.y, 20, H - 20);
       resolveBlocks(e);
     }
+    if (e.ccDrTimer > 0) { e.ccDrTimer -= dt; if (e.ccDrTimer <= 0) e.ccDr = 0; }
     if (e.stun > 0) { e.stun -= dt; continue; }
     if (e.frozen > 0) { e.frozen -= dt; continue; }
     if (e.invisible > 0) e.invisible -= dt;

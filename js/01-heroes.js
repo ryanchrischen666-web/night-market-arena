@@ -36,11 +36,11 @@ const HEROES = {
   },
   bubble: {
     name: 'Bubble Tea', cn: '珍珠奶茶', role: 'DPS', emoji: '🧋',
-    color: '#9b6b4d', hp: 140, speed: 3.0, atkDmg: 18, atkRange: 280, atkCd: 0.45,
+    color: '#9b6b4d', hp: 140, speed: 3.0, atkDmg: 18, atkRange: 235, atkCd: 0.45,
     abilities: [
-      { key: 'Q', name: 'Sugar Boost', cd: 7, cast: castSugarBoost, icon: '糖' },
-      { key: 'E', name: 'Ice Toss', cd: 5, cast: castIceToss, icon: '冰' },
-      { key: 'R', name: 'Pearl Storm', cd: 11, cast: castPearlBarrage, icon: '珍' },
+      { key: 'Q', name: 'Sugar Boost', cd: 9, cast: castSugarBoost, icon: '糖' },
+      { key: 'E', name: 'Ice Toss', cd: 7, cast: castIceToss, icon: '冰' },
+      { key: 'R', name: 'Pearl Storm', cd: 12, cast: castPearlBarrage, icon: '珍' },
     ],
     aiSpecial: 'iceShot', aiSpecialCd: 5.5,
   },
@@ -58,9 +58,9 @@ const HEROES = {
     name: 'Candied Hawthorn', cn: '糖葫蘆', role: 'Assassin', emoji: '🍡',
     color: '#cc2936', hp: 120, speed: 3.4, atkDmg: 18, atkRange: 70, atkCd: 0.4,
     abilities: [
-      { key: 'Q', name: 'Crystal Shards', cd: 4, cast: castCrystalShards, icon: '碎' },
-      { key: 'E', name: 'Red Flash', cd: 10, cast: castRedFlash, icon: '隱' },
-      { key: 'R', name: 'Sugar Strike', cd: 12, cast: castSugarStrike, icon: '裹' },
+      { key: 'Q', name: 'Crystal Shards', cd: 4.5, cast: castCrystalShards, icon: '碎' },
+      { key: 'E', name: 'Red Flash', cd: 12, cast: castRedFlash, icon: '隱' },
+      { key: 'R', name: 'Sugar Strike', cd: 14, cast: castSugarStrike, icon: '裹' },
     ],
     aiSpecial: 'vanishStrike', aiSpecialCd: 9,
   },
@@ -69,7 +69,7 @@ const HEROES = {
     color: '#f4a261', hp: 170, speed: 2.8, atkDmg: 16, atkRange: 200, atkCd: 0.5,
     abilities: [
       { key: 'Q', name: 'Egg Heal', cd: 7, cast: castEggHeal, icon: '蛋' },
-      { key: 'E', name: 'Tracker', cd: 4, cast: castOysterTracker, icon: '蚵' },
+      { key: 'E', name: 'Tracker', cd: 5, cast: castOysterTracker, icon: '蚵' },
       { key: 'R', name: 'Slick Zone', cd: 13, cast: castSlipperyShield, icon: '滑' },
     ],
     aiSpecial: 'tracker', aiSpecialCd: 6,

@@ -68,6 +68,7 @@ function spawnEnemyHero(id, x, y, modeMul) {
     retreatT: 0, dodgeCd: 0, _dodgeSide: 0, _dodgeAng: 0, lastSeen: null,
     vx: 0, vy: 0,
     stun: 0, frozen: 0, slow: 0, slowMul: 1,
+    ccDr: 0, ccDrTimer: 0,
     burning: 0, burnDmg: 0, burnTick: 0,
     hitFlash: 0,
     invisible: 0,
@@ -103,7 +104,8 @@ function tryCast(i) {
   const ab = player.abilities[i];
   if (!ab || ab.timer > 0) return;
   if (player === players[0] && (player.stunT > 0 || player.frozenT > 0)) return;
-  ab.cast();
+  // A cast that returns false fizzled (no valid target) and costs no cooldown.
+  if (ab.cast() === false) return;
   if (window.NetMatch && NetMatch.active && player === players[0]) NetMatch.sendCast(i, mouse.x, mouse.y);
   Sound.ability(ab.name);
   ab.timer = ab.cd;
