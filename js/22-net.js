@@ -584,6 +584,14 @@ const NetMatch = (() => {
   // 頁面關閉時通知
   window.addEventListener('beforeunload', () => { if (ch) { try { ch.untrack(); } catch (e) {} } });
 
+  // 手機鎖屏/切APP會凍結連線；切回來時重新報到並重繪
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && ch) {
+      console.log('[NET] 回到前景，重新報到');
+      setTimeout(() => { track(); if (lobbyOpen) renderLobby(); }, 800);
+    }
+  });
+
   return {
     createRoom, joinRoom, leaveRoom,
     sendAttack, sendCast, sendProp, sendDead, onLocalDeath,
