@@ -90,6 +90,7 @@ function damageEnemy(enemy, dmg, opts = {}) {
   if (enemy.remote) return;   // 連線對手：第一階段先不做傷害同步
   if (enemy.dead) return;
   if (enemy.shieldMul) dmg *= enemy.shieldMul;
+  matchStats.dmgDealt += Math.max(0, Math.min(dmg, enemy.hp));
   enemy.hp -= dmg;
   enemy.hitFlash = 0.12;
   Sound.hit();
@@ -110,9 +111,14 @@ function damageEnemy(enemy, dmg, opts = {}) {
   }
 }
 
-function damagePlayer(dmg) {
+function damagePlayer(dmg, srcU) {
   if (player.dead || player.invuln > 0) return;
   if (player.shieldMul) dmg *= player.shieldMul;
+  const real = Math.max(0, Math.min(dmg, player.hp));
+  if (player === players[0]) {
+    matchStats.dmgTaken += real;
+    if (srcU) matchStats.dmgFrom[srcU] = (matchStats.dmgFrom[srcU] || 0) + real;
+  }
   player.hp -= dmg;
   player.hitFlash = 0.18;
   Sound.hurt();

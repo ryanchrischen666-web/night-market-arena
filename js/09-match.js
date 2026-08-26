@@ -9,6 +9,8 @@ function startMatch(heroId, mode, opts = {}) {
   players.push(player);
   enemies = []; projectiles = []; particles = []; zones = []; dmgTexts = [];
   totalKills = 0;
+  resetMatchStats();
+  if (window.NetMatch && NetMatch.resetPeerDamage) NetMatch.resetPeerDamage();
   currentMode = mode;
   runStart = performance.now();
 
@@ -146,24 +148,96 @@ function endGame(victory) {
   document.body.classList.remove('playing');
   Sound.stopMusic(); if (victory) Sound.win(); else Sound.lose();
   document.getElementById('hud').classList.add('hidden');
-  const screen = document.getElementById('end-screen');
-  screen.classList.remove('hidden');
-  const titleEl = document.getElementById('end-title');
-  titleEl.innerHTML = victory ? '勝利<span class="end-en">VICTORY</span>' : '敗北<span class="end-en">DEFEAT</span>';
-  titleEl.className = 'end-title ' + (victory ? 'win' : 'lose');
-  const time = ((performance.now() - runStart) / 1000).toFixed(1);
+
+  const seconds = (performance.now() - runStart) / 1000;
   const heroId = players[0] ? players[0].id : selectedHero;
-  const hCn = HEROES[heroId] ? HEROES[heroId].cn : '';
-  document.getElementById('end-stats').innerHTML = victory
-    ? `以 <span>${hCn}</span> 在 <span>${currentMode.toUpperCase()}</span> 稱霸夜市！<br>時間 Time <span>${time}s</span> · 剩血 HP <span>${Math.round(player.hp)}/${player.maxHp}</span>`
-    : `<span>${hCn}</span> 在鐵板混戰中倒下了<br>模式 Mode <span>${currentMode.toUpperCase()}</span> · 擊倒 Kills <span>${totalKills}</span>`;
+  const online = !!(window.NetMatch && NetMatch.inMatch);
+  renderEndScreen({ victory, heroId, seconds, online });
 
   // 結算獎勵：夜市幣 · 經驗 · 成就 · 最佳紀錄
   UI.showRewards(Progress.finishMatch({
     victory, mode: currentMode,
     heroId,
-    kills: totalKills, seconds: parseFloat(time),
+    kills: totalKills, seconds: parseFloat(seconds.toFixed(1)),
     hpLeft: player ? player.hp : 0, maxHp: player ? player.maxHp : 1,
   }));
+}
+
+// 連線時「我打出的傷害」= 對手回報的 dmgFrom[我的 id]；單機直接用本地累計。
+function damageDealtThisMatch(online) {
+  if (online && window.NetMatch && NetMatch.myDamageDealt) return NetMatch.myDamageDealt();
+  return matchStats.dmgDealt;
+}
+
+// 敗北時給一句具體的下一步；線上對戰不給（叫人「改玩 1v1」對真人沒意義）
+function defeatAdvice({ heroId, seconds, dealt, taken, online }) {
+  if (online) return '';
+  const h = HEROES[heroId];
+  if (seconds < 15) return '這場結束得有點快 —— 先玩 1v1 模式，熟悉節奏再挑戰多打一。';
+  if (h && h.hp <= 140) return `${h.cn}很脆，一被抓住就沒了。試試血比較厚的蔥油餅或臭豆腐。`;
+  if (taken > dealt * 2) return '你挨的傷害是打出去的兩倍以上 —— 多用場上的攤位擋視線，別站在空地對拼。';
+  if (currentMode === '1v3' && totalKills > 0) return '1v3 場面太擠了，你已經拿到擊殺，先回 1v2 練走位。';
+  return '再來一次，你已經很接近了。';
+}
+
+const END_ROW_STAGGER = 120;   // ms，與 --end-row-stagger 對齊
+
+function renderEndScreen({ victory, heroId, seconds, online }) {
+  const screen = document.getElementById('end-screen');
+  const titleEl = document.getElementById('end-title');
+  titleEl.innerHTML = victory ? '勝利<span class="end-en">VICTORY</span>' : '敗北<span class="end-en">DEFEAT</span>';
+  titleEl.className = 'end-title ' + (victory ? 'win' : 'lose');
+
+  const dealt = Math.round(damageDealtThisMatch(online));
+  const taken = Math.round(matchStats.dmgTaken);
+  const rows = [
+    ['擊殺數', String(totalKills)],
+    ['總傷害', dealt.toLocaleString('en-US')],
+    ['承受傷害', taken.toLocaleString('en-US')],
+    ['存活時間', seconds.toFixed(1) + 's'],
+  ];
+  const list = document.getElementById('end-stat-rows');
+  list.innerHTML = '';
+  rows.forEach(([label, value], i) => {
+    const li = document.createElement('li');
+    li.style.setProperty('--row-delay', (700 + i * END_ROW_STAGGER) + 'ms');
+    li.innerHTML = `<span class="label"></span><span class="dots"></span><span class="value"></span>`;
+    li.querySelector('.label').textContent = label;
+    li.querySelector('.value').textContent = value;
+    list.appendChild(li);
+  });
+
+  const adviceEl = document.getElementById('end-advice');
+  const advice = victory ? '' : defeatAdvice({ heroId, seconds, dealt, taken, online });
+  adviceEl.textContent = advice;
+  adviceEl.classList.toggle('hidden', !advice);
+
+  const tail = 700 + rows.length * END_ROW_STAGGER + 260;
+  screen.style.setProperty('--tail-delay', tail + 'ms');
+  screen.classList.remove('hidden', 'settled');
+  void screen.offsetWidth;          // restart the animation on a rematch
+  screen.classList.add('animate');
+  armEndSkip(screen);
+}
+
+// 點一下或按任意鍵就直接跳到最終畫面
+function armEndSkip(screen) {
+  const settle = () => {
+    screen.classList.add('settled');
+    screen.removeEventListener('pointerdown', settle);
+    window.removeEventListener('keydown', settle);
+  };
+  screen.addEventListener('pointerdown', settle);
+  window.addEventListener('keydown', settle);
+}
+
+// 除錯用：在 console 打 previewEnd(true) / previewEnd(false) 直接看整段動畫
+function previewEnd(victory = true, opts = {}) {
+  totalKills = opts.kills != null ? opts.kills : 3;
+  matchStats.dmgDealt = opts.dealt != null ? opts.dealt : 1240;
+  matchStats.dmgTaken = opts.taken != null ? opts.taken : 980;
+  currentMode = opts.mode || currentMode || '1v1';
+  document.getElementById('hud').classList.add('hidden');
+  renderEndScreen({ victory, heroId: opts.heroId || selectedHero || 'hawthorn', seconds: opts.seconds != null ? opts.seconds : 47.2, online: false });
 }
 

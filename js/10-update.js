@@ -70,7 +70,7 @@ function updatePlayerCore(dt) {
   if (player.burnT > 0) {
     player.burnT -= dt;
     player.burnTickP += dt;
-    if (player.burnTickP >= 0.5) { player.burnTickP = 0; damagePlayer(player.burnDmgP * 0.5); }
+    if (player.burnTickP >= 0.5) { player.burnTickP = 0; damagePlayer(player.burnDmgP * 0.5, player.burnSrc); }
   }
   const _cc = player.stunT > 0 || player.frozenT > 0;
 
@@ -207,7 +207,7 @@ function update(dt) {
       if (z.dmgTimer > 0.4) {
         let hit = false;
         for (const pl of players) {
-          if (!pl.dead && Math.hypot(z.x - pl.x, z.y - pl.y) < z.r) { player = pl; damagePlayer(z.hostileDmg || 5); hit = true; }
+          if (!pl.dead && Math.hypot(z.x - pl.x, z.y - pl.y) < z.r) { player = pl; damagePlayer(z.hostileDmg || 5, z.srcU); hit = true; }
         }
         player = players[0];
         if (hit) z.dmgTimer = 0;
@@ -487,7 +487,7 @@ function update(dt) {
         if (pl.dead) continue;
         if (p._hitsP && p._hitsP.has(pl)) continue;
         if (Math.hypot(pl.x - p.x, pl.y - p.y) < pl.r + p.r) {
-          player = pl; damagePlayer(p.dmg); player = players[0];
+          player = pl; damagePlayer(p.dmg, p.srcU); player = players[0];
           if (p.kb) { const _a = Math.atan2(p.vy, p.vx) || 0; pl.x += Math.cos(_a) * p.kb; pl.y += Math.sin(_a) * p.kb; resolveBlocks(pl); }
           if (p.snareOnHit) { pl.slowT = Math.max(pl.slowT || 0, p.snareOnHit); pl.slowMulP = 0.4; }
           if (p.slowOnHit)  { pl.slowT = Math.max(pl.slowT || 0, p.slowOnHit);  pl.slowMulP = p.slowMulOnHit || 0.5; }

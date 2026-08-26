@@ -125,3 +125,130 @@
   .vs-preview .you { color: var(--lantern); }
   .vs-preview .vs { color: var(--red); font-family: 'Bungee', sans-serif; padding: 0 8px; }
 
+
+/* ============ 結束畫面：夜市落題 → 數據滑入 ============ */
+:root {
+  --end-drop-dur: 560ms;
+  --end-row-dur: 420ms;
+  --end-row-stagger: 120ms;
+  --end-ease-drop: cubic-bezier(0.34, 1.32, 0.48, 1);
+  --end-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#end-screen { display: flex; flex-direction: column; align-items: center; }
+
+.end-brand {
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 900;
+  font-size: clamp(64px, 13vw, 132px);
+  letter-spacing: 0.14em;
+  line-height: 1;
+  color: var(--lantern);
+  text-shadow: 0 6px 0 var(--red-deep), 0 0 42px rgba(244, 169, 60, 0.42);
+  margin-bottom: 6px;
+}
+
+.end-brand::after {
+  content: '';
+  display: block;
+  width: 62%;
+  height: 3px;
+  margin: 14px auto 0;
+  background: linear-gradient(90deg, transparent, var(--lantern), transparent);
+  transform: scaleX(0);
+  transform-origin: center;
+}
+
+.end-stat-rows { list-style: none; margin: 26px 0 0; padding: 0; min-width: min(360px, 78vw); }
+
+.end-stat-rows li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px dashed rgba(245, 230, 200, 0.16);
+}
+
+.end-stat-rows .label {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 15px;
+  letter-spacing: 0.22em;
+  color: var(--paper);
+  white-space: nowrap;
+}
+
+.end-stat-rows .dots { flex: 1; border-bottom: 1px dotted rgba(245, 230, 200, 0.28); transform: translateY(-4px); }
+
+.end-stat-rows .value {
+  font-family: 'Bungee', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  color: var(--lantern-glow);
+  text-shadow: 0 0 14px rgba(255, 204, 107, 0.34);
+  white-space: nowrap;
+}
+
+.end-advice {
+  margin-top: 20px;
+  max-width: min(420px, 84vw);
+  font-family: 'Noto Serif TC', serif;
+  font-size: 14px;
+  line-height: 1.9;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: var(--jade);
+  border-left: 2px solid var(--jade);
+  border-right: 2px solid var(--jade);
+  padding: 6px 16px;
+}
+
+.end-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 26px; }
+
+/* --- the sequence --- */
+@keyframes endBrandDrop {
+  from { opacity: 0; transform: translate3d(0, -140%, 0) scale(1.12); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes endRuleSweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes endSlideIn {
+  from { opacity: 0; transform: translate3d(-38px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes endValuePop {
+  from { opacity: 0; transform: translate3d(10px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes endRiseIn {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Hidden until .playing-intro drives them, so nothing flashes pre-animation. */
+#end-screen.animate .end-brand { animation: endBrandDrop var(--end-drop-dur) var(--end-ease-drop) both; }
+#end-screen.animate .end-brand::after { animation: endRuleSweep 460ms var(--end-ease-out) both; animation-delay: var(--end-drop-dur); }
+#end-screen.animate .end-title { animation: endRiseIn 380ms var(--end-ease-out) both; animation-delay: calc(var(--end-drop-dur) + 120ms); }
+#end-screen.animate .end-stat-rows li { animation: endSlideIn var(--end-row-dur) var(--end-ease-out) both; animation-delay: var(--row-delay, 0ms); }
+#end-screen.animate .end-stat-rows .value { animation: endValuePop 300ms var(--end-ease-out) both; animation-delay: calc(var(--row-delay, 0ms) + 190ms); }
+#end-screen.animate .end-advice { animation: endRiseIn 420ms var(--end-ease-out) both; animation-delay: var(--tail-delay, 0ms); }
+#end-screen.animate .end-actions { animation: endRiseIn 420ms var(--end-ease-out) both; animation-delay: calc(var(--tail-delay, 0ms) + 140ms); }
+
+/* Skipped (click / keypress) and reduced-motion both land on the finished state. */
+#end-screen.settled .end-brand,
+#end-screen.settled .end-brand::after,
+#end-screen.settled .end-title,
+#end-screen.settled .end-stat-rows li,
+#end-screen.settled .end-stat-rows .value,
+#end-screen.settled .end-advice,
+#end-screen.settled .end-actions { animation: none !important; opacity: 1; transform: none; }
+#end-screen.settled .end-brand::after { transform: scaleX(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  #end-screen.animate .end-brand,
+  #end-screen.animate .end-brand::after,
+  #end-screen.animate .end-title,
+  #end-screen.animate .end-stat-rows li,
+  #end-screen.animate .end-stat-rows .value,
+  #end-screen.animate .end-advice,
+  #end-screen.animate .end-actions { animation: none !important; opacity: 1; transform: none; }
+  #end-screen.animate .end-brand::after { transform: scaleX(1); }
+}

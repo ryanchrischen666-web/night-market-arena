@@ -16,6 +16,10 @@ let currentMap = null;
 let currentMode = '1v1';
 let totalKills = 0;
 let runStart = 0;
+// 這場的統計：結束畫面用。dmgFrom 記「誰打了我多少」，連線時廣播出去，
+// 對手讀 dmgFrom[自己的 id] 就是他這場打出的真實傷害。
+let matchStats = { dmgDealt: 0, dmgTaken: 0, dmgFrom: {} };
+function resetMatchStats() { matchStats = { dmgDealt: 0, dmgTaken: 0, dmgFrom: {} }; }
 const keys = {};
 const mouse = { x: W/2, y: H/2, down: false };
 let lastTime = 0;

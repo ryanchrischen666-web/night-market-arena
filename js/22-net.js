@@ -66,6 +66,7 @@ const NetMatch = (() => {
         b.push({ t: performance.now(), x: payload.x, y: payload.y, f: payload.f, d: payload.d });
         if (b.length > 40) b.shift();
         if (payload.h != null) hps[payload.u] = payload.h;
+        if (payload.df) dmgFromPeers[payload.u] = payload.df;
       })
       .on('broadcast', { event: 'atk' }, ({ payload }) => replayAttack(payload))
       .on('broadcast', { event: 'cast' }, ({ payload }) => replayCast(payload))
@@ -322,7 +323,7 @@ const NetMatch = (() => {
     if (!p) return;
     try {
       ch.send({ type: 'broadcast', event: 'pos',
-        payload: { u: myId(), x: Math.round(p.x), y: Math.round(p.y), f: p.facing, d: p.faceDir, h: Math.round(p.hp) } });
+        payload: { u: myId(), x: Math.round(p.x), y: Math.round(p.y), f: p.facing, d: p.faceDir, h: Math.round(p.hp), df: roundedDmgFrom() } });
     } catch (e) {}
   }
 
@@ -351,7 +352,7 @@ const NetMatch = (() => {
       e._netDash.t -= dt;
       if (e.hostileNet && me0 && !me0.dead && !e._netDash.hit && Math.hypot(me0.x - e.x, me0.y - e.y) < me0.r + e.r + 6) {
         e._netDash.hit = true;
-        player = me0; damagePlayer(e._netDash.dmg); player = players[0];
+        player = me0; damagePlayer(e._netDash.dmg, e.netId); player = players[0];
         if (e._netDash.stun) applyStunP(me0, e._netDash.stun);
         if (e._netDash.slow) { me0.slowT = Math.max(me0.slowT || 0, e._netDash.slow); me0.slowMulP = e._netDash.slowMul || 0.6; }
         spawnParticles(me0.x, me0.y, 18, e.color, { speed: 5, life: 0.6, size: 4 });
@@ -364,7 +365,7 @@ const NetMatch = (() => {
         e._netLeap = null;
         if (e.hostileNet && me0 && !me0.dead) {
           applyStunP(me0, 0.9);
-          player = me0; damagePlayer(45); player = players[0];
+          player = me0; damagePlayer(45, e.netId); player = players[0];
           spawnParticles(me0.x, me0.y, 20, '#cc2936', { speed: 5, life: 0.6, size: 5 });
           spawnRing(me0.x, me0.y, '#ff5a4a', 56); addShake(8); addHitStop(0.08);
           Sound.slam();
@@ -458,6 +459,21 @@ const NetMatch = (() => {
 
   function senderEntity(u) { return enemies.find(x => x.remote && x.netId === u); }
 
+  // 每個人回報「誰打了我多少」；把所有人回報中屬於我的那份加起來，
+  // 就是我這場打出的真實傷害（1v1 與 3v3 都準）。
+  const dmgFromPeers = {};
+  function resetPeerDamage() { for (const k in dmgFromPeers) delete dmgFromPeers[k]; }
+  function roundedDmgFrom() {
+    const out = {};
+    for (const k in matchStats.dmgFrom) out[k] = Math.round(matchStats.dmgFrom[k]);
+    return out;
+  }
+  function myDamageDealt() {
+    let sum = 0;
+    for (const u in dmgFromPeers) sum += dmgFromPeers[u][myId()] || 0;
+    return sum;
+  }
+
   function replayAttack(pl) {
     if (state !== 'playing' || !inMatch) return;
     const e = senderEntity(pl.u);
@@ -473,8 +489,8 @@ const NetMatch = (() => {
           const ea = Math.atan2(p.y - e.y, p.x - e.x);
           const diff = Math.abs(((ea - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
           if (diff < Math.PI / 2.5) {
-            player = p; damagePlayer(h.atkDmg * _mul); player = players[0];
-            if (_burn) { p.burnT = 3; p.burnDmgP = 6; }
+            player = p; damagePlayer(h.atkDmg * _mul, pl.u); player = players[0];
+            if (_burn) { p.burnT = 3; p.burnDmgP = 6; p.burnSrc = pl.u; }
           }
         }
       }
@@ -489,8 +505,8 @@ const NetMatch = (() => {
       const st = ({ squid: 'ink', bubble: 'pearl' })[e.id] || 'bolt';
       const mx = e.x + Math.cos(ang) * (e.r + 6), my2 = e.y + Math.sin(ang) * (e.r + 6);
       projectiles.push({ x: mx, y: my2, vx: Math.cos(ang) * 11, vy: Math.sin(ang) * 11, r: 6,
-        dmg: h.atkDmg * _mul, life: 1.3, color: e.color, team: hostile ? 'enemy' : 'fx', style: st,
-        onHitP: (hostile && _burn) ? ((proj, pv) => { pv.burnT = 3; pv.burnDmgP = 6; }) : null });
+        dmg: h.atkDmg * _mul, life: 1.3, color: e.color, team: hostile ? 'enemy' : 'fx', srcU: pl.u, style: st,
+        onHitP: (hostile && _burn) ? ((proj, pv) => { pv.burnT = 3; pv.burnDmgP = 6; pv.burnSrc = pl.u; }) : null });
       spawnParticles(mx, my2, 7, e.color, { speed: 3, life: 0.25, size: 2 });
       Sound.shot(e.id);
     }
@@ -505,14 +521,14 @@ const NetMatch = (() => {
     const me0 = players[0];
     if (!me0) return;
     const ang = Math.atan2(my - e.y, mx - e.x);
-    const hurt = (d) => { if (hostile && !me0.dead) { player = me0; damagePlayer(d); player = players[0]; } };
+    const hurt = (d) => { if (hostile && !me0.dead) { player = me0; damagePlayer(d, plo.u); player = players[0]; } };
     const cc = (fn) => { if (hostile && !me0.dead) fn(); };
     const inCone = (range, arc) => {
       if (Math.hypot(me0.x - e.x, me0.y - e.y) > range + me0.r) return false;
       const ea = Math.atan2(me0.y - e.y, me0.x - e.x);
       return Math.abs(((ea - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI) < arc / 2;
     };
-    const P = (o) => projectiles.push(Object.assign({ team: hostile ? 'enemy' : 'fx' }, o));
+    const P = (o) => projectiles.push(Object.assign({ team: hostile ? 'enemy' : 'fx', srcU: plo.u }, o));
     const fx = (x, y, n, c, o) => spawnParticles(x, y, n, c, o || { speed: 4, life: 0.6, size: 4 });
     const T = {
       scallion: [
@@ -537,16 +553,16 @@ const NetMatch = (() => {
         () => { e._netDash = { t: 0.28, dmg: 22, stun: 0.3, slow: 2, slowMul: 0.6, hit: false };
           for (let k = 0; k <= 4; k++) {
             const px = e.x + Math.cos(ang) * 240 * (k / 4), py = e.y + Math.sin(ang) * 240 * (k / 4);
-            zones.push({ type: 'stink', x: px, y: py, r: 34, life: 2.4, maxLife: 2.4, dmgTimer: k * 0.08, hostile, hostileDmg: 6 });
+            zones.push({ type: 'stink', x: px, y: py, r: 34, life: 2.4, maxLife: 2.4, dmgTimer: k * 0.08, hostile, hostileDmg: 6, srcU: plo.u });
           } fx(e.x, e.y, 20, '#9c7a3b', { speed: 4, life: 0.5, size: 4 }); },
         () => { e.shield = 4; fx(e.x, e.y, 16, '#9c7a3b', { speed: 3, life: 0.6, size: 4 }); },
-        () => { zones.push({ type: 'stink', x: mx, y: my, r: 90, life: 5, maxLife: 5, dmgTimer: 0, hostile, hostileDmg: 6 });
+        () => { zones.push({ type: 'stink', x: mx, y: my, r: 90, life: 5, maxLife: 5, dmgTimer: 0, hostile, hostileDmg: 6, srcU: plo.u });
           fx(mx, my, 24, '#7a8a3a', { speed: 4, life: 0.8, size: 5 }); },
       ],
       bubble: [
         () => { fx(e.x, e.y, 12, '#ffcc6b', { speed: 3, life: 0.6, size: 3 }); },
         () => P({ x: e.x, y: e.y, vx: Math.cos(ang) * 7, vy: Math.sin(ang) * 7, r: 8, dmg: 22, life: 0.8, color: '#a8d8ff',
-          onHitP: (proj, pv) => { if (Math.hypot(pv.x - proj.x, pv.y - proj.y) < 80) { applyFreezeP(pv, 1.2); player = pv; damagePlayer(16); player = players[0]; }
+          onHitP: (proj, pv) => { if (Math.hypot(pv.x - proj.x, pv.y - proj.y) < 80) { applyFreezeP(pv, 1.2); player = pv; damagePlayer(16, proj.srcU); player = players[0]; }
             zones.push({ type: 'ice', x: proj.x, y: proj.y, r: 80, life: 1.0, maxLife: 1.0 });
             spawnParticles(proj.x, proj.y, 25, '#cfeaff', { speed: 6, life: 0.7, size: 5 }); } }),
         () => { for (let k = 0; k < 9; k++) { const a = ang + (k - 4) * 0.11;
@@ -597,6 +613,7 @@ const NetMatch = (() => {
   return {
     createRoom, joinRoom, leaveRoom,
     sendAttack, sendCast, sendProp, sendDead, onLocalDeath,
+    myDamageDealt, resetPeerDamage,
     _tickRemote,
     get active() { return !!ch; },
     get inMatch() { return inMatch; },
