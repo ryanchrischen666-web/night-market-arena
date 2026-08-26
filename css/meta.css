@@ -154,6 +154,17 @@ body.touch #pause-btn { top: 14px; right: 62px; }
 
 
 /* ===== 房間大廳 ===== */
+/* .screen 是 justify-content:center，內容太高時上緣會被裁掉且捲不到；
+   margin:auto 讓它高於視窗時自動改為可完整捲動 */
+#room-screen { justify-content: flex-start; }
+#room-screen > * { flex-shrink: 0; }
+#room-screen > :first-child { margin-top: auto; }
+#room-screen > :last-child { margin-bottom: auto; }
+@media (max-width: 700px) {
+  .room-teams { flex-direction: column; align-items: center; gap: 10px; }
+  .room-team { width: min(320px, 86vw); }
+  .room-team ul { min-height: 0; }
+}
 #room-screen .select-title span { color: var(--lantern); letter-spacing: 6px; }
 .room-teams { display: flex; gap: 18px; justify-content: center; margin: 10px 0 12px; }
 .room-team { width: 250px; background: rgba(12,8,16,0.6); border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 10px 12px; }

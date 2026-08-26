@@ -91,11 +91,31 @@ const NetMatch = (() => {
     if (!sendTimer) sendTimer = setInterval(tick, SEND_MS);
   }
 
-  async function track() {
+  async function track(retried) {
     if (!ch) return;
     try {
-      await ch.track({ name: Online.myName || '?', host: iAmHost, team: me.team, hero: me.hero, ready: me.ready });
-    } catch (e) {}
+      const st = await ch.track({ name: Online.myName || '?', host: iAmHost, team: me.team, hero: me.hero, ready: me.ready });
+      console.log('[NET] track →', st, JSON.stringify(me));
+      if (st !== 'ok' && !retried) setTimeout(() => track(true), 600);   // 失敗自動重試一次
+    } catch (e) {
+      console.log('[NET] track 例外', e);
+      if (!retried) setTimeout(() => track(true), 600);
+    }
+  }
+
+  // 同步看門狗：按了選隊/選角後 3 秒，presence 還沒跟上就再推一次
+  let watchdog = null;
+  function armWatchdog() {
+    if (watchdog) clearTimeout(watchdog);
+    watchdog = setTimeout(() => {
+      const mine = members.find(m => m.id === myId());
+      if (lobbyOpen && mine && (mine.team !== me.team || mine.hero !== me.hero || !!mine.ready !== !!me.ready)) {
+        console.log('[NET] presence 沒跟上，重推', JSON.stringify(me), '↔', JSON.stringify(mine));
+        note('同步慢，重試中…');
+        track();
+        armWatchdog();
+      }
+    }, 3000);
   }
 
   function onPresence() {
@@ -159,13 +179,15 @@ const NetMatch = (() => {
     if (wired) return; wired = true;
     document.querySelectorAll('.room-join-team').forEach(b => b.addEventListener('click', () => {
       const t = +b.dataset.team;
-      if (members.filter(m => m.team === t).length >= 3) return;
-      Sound.ui(); me.team = t; me.ready = me.ready && true; track();
+      console.log('[NET] 點選隊', t);
+      if (members.filter(m => m.id !== myId() && m.team === t).length >= 3) { note('這隊滿了'); return; }
+      Sound.ui(); me.team = t; track(); armWatchdog(); renderLobby();
     }));
     document.getElementById('room-leave-btn').addEventListener('click', () => { Sound.uiBack(); leaveRoom(); });
     document.getElementById('room-ready-btn').addEventListener('click', () => {
       if (me.team == null || !me.hero) { note('先選隊伍和英雄'); return; }
-      Sound.ui(); me.ready = !me.ready; track(); renderLobby();
+      console.log('[NET] 準備切換');
+      Sound.ui(); me.ready = !me.ready; track(); armWatchdog(); renderLobby();
     });
     document.getElementById('room-start-btn').addEventListener('click', () => {
       if (!iAmHost || !canStart()) return;
@@ -182,7 +204,8 @@ const NetMatch = (() => {
     pick.addEventListener('click', (ev) => {
       const b = ev.target.closest('.room-hero');
       if (!b) return;
-      Sound.ui(); me.hero = b.dataset.id; track(); renderLobby();
+      console.log('[NET] 點選角', b.dataset.id);
+      Sound.ui(); me.hero = b.dataset.id; track(); armWatchdog(); renderLobby();
     });
   }
 
@@ -196,13 +219,22 @@ const NetMatch = (() => {
     return true;
   }
 
+  function localMembers() {
+    const out = members.map(m => m.id === myId()
+      ? Object.assign({}, m, { team: me.team, hero: me.hero, ready: me.ready }) : m);
+    if (!out.some(m => m.id === myId()))
+      out.push({ id: myId(), name: Online.myName || '?', host: iAmHost, team: me.team, hero: me.hero, ready: me.ready });
+    return out;
+  }
+
   function renderLobby() {
     if (!lobbyOpen) return;
     document.getElementById('room-code-big').textContent = code;
-    const mine = members.find(m => m.id === myId()) || {};
+    const members_ = localMembers();
+    const mine = { team: me.team };
     for (const t of [0, 1]) {
       const ul = document.getElementById('team' + t + '-list');
-      const rows = members.filter(m => m.team === t).map(m => {
+      const rows = members_.filter(m => m.team === t).map(m => {
         const h = m.hero ? HEROES[m.hero] : null;
         return `<li class="${m.id === myId() ? 'me' : ''}">${m.host ? '👑' : ''}${h ? h.emoji : '❔'} ${esc(m.name || '?')}` +
           `<span>${m.host ? '房主' : (m.ready ? '✅ 已準備' : '…')}</span></li>`;
@@ -210,9 +242,9 @@ const NetMatch = (() => {
       for (let k = rows.length; k < 3; k++) rows.push('<li class="empty">－ 空位 －</li>');
       ul.innerHTML = rows.join('');
       const jb = document.querySelector(`.room-join-team[data-team="${t}"]`);
-      jb.classList.toggle('hidden', mine.team === t || members.filter(m => m.team === t).length >= 3);
+      jb.classList.toggle('hidden', mine.team === t || members_.filter(m => m.team === t).length >= 3);
     }
-    const idle = members.filter(m => m.team == null);
+    const idle = members_.filter(m => m.team == null);
     note((idle.length ? '未選隊：' + idle.map(m => esc(m.name)).join('、') + ' · ' : '') + '房號 ' + code);
     // 我的英雄高亮
     document.querySelectorAll('.room-hero').forEach(b => b.classList.toggle('selected', b.dataset.id === me.hero));
