@@ -28,3 +28,15 @@
   .hero-abilities .acn { font-family: 'Noto Serif TC', serif; color: rgba(245,230,200,0.85); }
   .tagline-en { display: block; margin-top: 9px; font-size: 12px; opacity: 0.65; }
   .end-en { display: block; font-family: 'Bungee', sans-serif; font-size: 24px; letter-spacing: 6px; margin-top: 4px; }
+  body.touch #abilities-bar { display: none !important; }
+  /* 選角卡在矮螢幕縮小一點 */
+  @media (max-height: 480px) {
+    .hero-card { transform: scale(0.82); transform-origin: top center; margin-bottom: -40px; }
+  }
+  /* 線上面板：手機預設收合成小藥丸，點標題展開 */
+  body.touch #online-panel { width: auto; max-width: 210px; padding: 7px 10px; }
+  body.touch #online-panel:not(.expanded) #online-list,
+  body.touch #online-panel:not(.expanded) .om,
+  body.touch #online-panel:not(.expanded) #online-name-btn,
+  body.touch #online-panel:not(.expanded) div { display: none; }
+  body.touch #online-panel h4 { margin: 0; cursor: pointer; }

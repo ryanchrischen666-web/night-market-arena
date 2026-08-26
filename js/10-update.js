@@ -172,7 +172,8 @@ function updatePlayerCore(dt) {
 
 
   // Basic attack
-  if (mouse.down && player.atkTimer <= 0 && !_cc) {
+  if ((mouse.down || mouse.tapAtk) && player.atkTimer <= 0 && !_cc) {
+    mouse.tapAtk = false;
     fireBasicAttack();
     player.atkTimer = player.atkCd;
   }

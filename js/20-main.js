@@ -149,6 +149,8 @@ function initTouch() {
     checkOrient();
   }
   window.addEventListener('touchstart', enableTouch, { passive: true });
+  // 手機不用等第一次觸摸：一載入就知道要顯示轉向提示
+  if (window.matchMedia && matchMedia('(pointer: coarse)').matches) enableTouch();
   window.addEventListener('resize', checkOrient);
   window.addEventListener('orientationchange', () => setTimeout(checkOrient, 200));
 
@@ -186,7 +188,7 @@ function initTouch() {
   zone.addEventListener('touchcancel', endJoy, { passive: false });
 
   const atk = document.getElementById('tb-atk');
-  atk.addEventListener('touchstart', (e) => { e.preventDefault(); mouse.down = true; }, { passive: false });
+  atk.addEventListener('touchstart', (e) => { e.preventDefault(); mouse.down = true; mouse.tapAtk = true; }, { passive: false });
   atk.addEventListener('touchend', (e) => { e.preventDefault(); mouse.down = false; }, { passive: false });
   atk.addEventListener('touchcancel', () => { mouse.down = false; });
   [['tb-q', 0], ['tb-e', 1], ['tb-r', 2]].forEach(([id, i]) => {
@@ -199,6 +201,27 @@ function initTouch() {
   if (cv) cv.addEventListener('touchstart', (e) => { if (state === 'playing') e.preventDefault(); }, { passive: false });
 }
 initTouch();
+
+// ===== 玩家名字（S5：跟線上面板共用同一份，重開瀏覽器還記得）=====
+const PlayerName = (() => {
+  const KEY = 'nma_online_name';
+  function get() { try { return (localStorage.getItem(KEY) || '').trim(); } catch (e) { return ''; } }
+  function set(n) {
+    n = (n || '').trim().slice(0, 16);
+    if (window.Online && Online.enabled && Online.enabled()) Online.setName(n);
+    else { try { localStorage.setItem(KEY, n); } catch (e) {} }
+  }
+  const input = document.getElementById('player-name-input');
+  if (input) {
+    input.value = get();
+    input.addEventListener('change', () => set(input.value));
+    input.addEventListener('blur', () => set(input.value));
+    // 打字時不要觸發遊戲的鍵盤操作
+    input.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') input.blur(); });
+  }
+  return { get, set };
+})();
+window.PlayerName = PlayerName;   // top-level const 不會自動掛上 window
 
 // ===== 介紹 / 教學 / 成就 / 攤位 =====
 (function () {

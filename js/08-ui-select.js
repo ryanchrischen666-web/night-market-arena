@@ -4,6 +4,10 @@
 function renderHeroCards() {
   const grid = document.getElementById('heroes-grid');
   grid.innerHTML = '';
+  // 數值條用全體最大值做基準，一眼看出誰坦誰快誰痛
+  const _mx = { hp: 0, sp: 0, dm: 0 };
+  for (const id of HERO_ORDER) { const h = HEROES[id];
+    _mx.hp = Math.max(_mx.hp, h.hp); _mx.sp = Math.max(_mx.sp, h.speed); _mx.dm = Math.max(_mx.dm, h.atkDmg); }
   for (const id of HERO_ORDER) {
     const h = HEROES[id];
     const card = document.createElement('div');
@@ -19,7 +23,12 @@ function renderHeroCards() {
       <div class="hero-cn">${h.cn}</div>
       <div class="hero-title">${L.tCn} · ${L.tEn}</div>
       <div class="hero-role"><span class="rcn">${L.rCn}</span> ${h.role}</div>
-      <div class="hero-stats"><b>HP</b> ${h.hp} · <b>SPD</b> ${h.speed.toFixed(1)} · <b>${h.atkRange < 100 ? '近戰 Melee' : '遠程 Ranged'}</b></div>
+      <div class="hero-stats"><b>${h.atkRange < 100 ? '近戰 Melee' : '遠程 Ranged'}</b></div>
+      <div class="hero-bars">
+        <div class="hb"><i>血量</i><span><b style="width:${Math.round(100 * h.hp / _mx.hp)}%"></b></span><em>${h.hp}</em></div>
+        <div class="hb"><i>速度</i><span><b style="width:${Math.round(100 * h.speed / _mx.sp)}%"></b></span><em>${h.speed.toFixed(1)}</em></div>
+        <div class="hb"><i>攻擊</i><span><b style="width:${Math.round(100 * h.atkDmg / _mx.dm)}%"></b></span><em>${h.atkDmg}</em></div>
+      </div>
       <div class="hero-abilities">
         ${h.abilities.map((a, i) => `<div><span class="key">${a.key}</span>${a.icon} <span class="acn">${(L.aCn && L.aCn[i]) || ''}</span> ${a.name}</div>`).join('')}
       </div>

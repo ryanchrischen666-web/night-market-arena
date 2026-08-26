@@ -38,6 +38,9 @@ function startMatch(heroId, mode, opts = {}) {
   document.getElementById('mode-label').textContent = mode === 'tutorial' ? '教學 TUTORIAL' : mode.toUpperCase();
   document.getElementById('controls-hint').innerHTML = '<b>WASD</b> 移動 \u00b7 <b>滑鼠</b> 瞄準 \u00b7 <b>點擊</b> 攻擊 \u00b7 <b>Q E R</b> 技能';
   buildAbilityBar();
+  const _nm = (window.PlayerName && PlayerName.get()) || '';
+  const _nmEl = document.getElementById('hp-name');
+  if (_nmEl) { _nmEl.textContent = _nm; _nmEl.classList.toggle('hidden', !_nm); }
   if (touchMode) buildMobileButtons();
   document.body.classList.add('playing');
   Sound.init(); Sound.resume(); Sound.matchStart(); Sound.startMusic(currentMap.theme);
@@ -187,6 +190,9 @@ function renderEndScreen({ victory, heroId, seconds, online }) {
   const titleEl = document.getElementById('end-title');
   titleEl.innerHTML = victory ? '勝利<span class="end-en">VICTORY</span>' : '敗北<span class="end-en">DEFEAT</span>';
   titleEl.className = 'end-title ' + (victory ? 'win' : 'lose');
+  const _ep = document.getElementById('end-player');
+  const _epn = (window.PlayerName && PlayerName.get()) || '';
+  if (_ep) { _ep.textContent = _epn ? _epn + ' 的戰績' : ''; _ep.classList.toggle('hidden', !_epn); }
 
   const dealt = Math.round(damageDealtThisMatch(online));
   const taken = Math.round(matchStats.dmgTaken);

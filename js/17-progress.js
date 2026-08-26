@@ -62,7 +62,7 @@ const Progress = (() => {
   function finishMatch(c) {
     const s = d();
     const unlocked = [];
-    let newRecord = false;
+    let newRecord = false, prevBest;
     const lvBefore = level().level;
 
     s.matches++;
@@ -92,6 +92,7 @@ const Progress = (() => {
       const key = c.heroId + '|' + c.mode;
       const prev = s.best[key];
       newRecord = (prev === undefined || c.seconds < prev);
+      prevBest = prev;
       if (newRecord) s.best[key] = c.seconds;
 
       grant('first_win', unlocked);
@@ -111,7 +112,7 @@ const Progress = (() => {
     Save.save();
     const lvAfter = level().level;
     return { coins, xp, unlocked, levelUp: lvAfter > lvBefore, level: lvAfter,
-             newRecord: c.victory && newRecord, seconds: c.seconds };
+             newRecord: c.victory && newRecord, prevBest, seconds: c.seconds };
   }
 
   function buy(itemId) {

@@ -182,3 +182,43 @@ body.touch #pause-btn { top: 14px; right: 62px; }
 .room-hero:hover { transform: translateY(-2px); border-color: rgba(244,169,60,0.6); }
 .room-hero.selected { border-color: var(--lantern); background: rgba(244,169,60,0.14); }
 .room-actions { display: flex; gap: 10px; justify-content: center; }
+
+
+/* ===== 玩家名字 ===== */
+.name-row { margin: 10px 0 2px; }
+#player-name-input { background: rgba(12,8,16,0.7); border: 2px solid rgba(255,255,255,0.2); border-radius: 9px;
+  color: #f6e6cf; font-family: 'Noto Serif TC', serif; font-size: 14px; padding: 7px 14px; width: 240px; text-align: center;
+  transition: border-color .15s; }
+#player-name-input:focus { outline: none; border-color: var(--lantern); }
+#player-name-input::placeholder { color: rgba(246,230,207,0.35); }
+#hp-name { position: absolute; top: -2px; left: 18px; font-family: 'Noto Serif TC', serif; font-weight: 700;
+  font-size: 13px; color: var(--lantern); text-shadow: 1px 1px 0 rgba(0,0,0,0.6); z-index: 7; }
+#end-player { font-family: 'Noto Serif TC', serif; font-weight: 700; font-size: 16px; color: var(--lantern);
+  letter-spacing: 2px; margin: 10px 0 6px; opacity: 0.9; }
+
+
+/* ===== S8 新紀錄印章 ===== */
+#record-stamp { position: absolute; top: 56px; left: 7%; transform: rotate(-8deg) scale(0); z-index: 95;
+  background: linear-gradient(160deg, #ffd166, #f4a93c); color: #3a2005;
+  font-family: 'Noto Serif TC', serif; font-weight: 900; font-size: 24px;
+  padding: 12px 20px; border-radius: 12px; border: 3px solid #fff2cc;
+  box-shadow: 0 6px 30px rgba(244,169,60,0.55); z-index: 20; text-align: center;
+  animation: stampIn 0.5s cubic-bezier(.2,1.6,.4,1) 0.4s forwards; }
+#record-stamp small { display: block; font-size: 12px; font-weight: 700; margin-top: 4px; opacity: 0.85; }
+#record-stamp.hidden { display: none; animation: none; }
+@keyframes stampIn { to { transform: rotate(-8deg) scale(1); } }
+#end-screen.new-record .end-title { animation: recGlow 1.2s ease-in-out infinite alternate; }
+@keyframes recGlow { from { text-shadow: 4px 4px 0 var(--red-deep), 0 0 30px rgba(244,169,60,0.5); }
+  to { text-shadow: 4px 4px 0 var(--red-deep), 0 0 70px rgba(255,220,120,0.95); } }
+
+
+/* ===== S7 英雄數值條 ===== */
+.hero-bars { margin: 4px 0 6px; }
+.hero-bars .hb { display: flex; align-items: center; gap: 5px; margin: 2px 0; }
+.hero-bars i { font-style: normal; font-family: 'Noto Serif TC', serif; font-size: 10px; width: 26px; opacity: 0.75; }
+.hero-bars span { flex: 1; height: 6px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; }
+.hero-bars b { display: block; height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #f4a93c, #ffd166); }
+.hero-bars .hb:nth-child(2) b { background: linear-gradient(90deg, #5cc8e0, #9be8f5); }
+.hero-bars .hb:nth-child(3) b { background: linear-gradient(90deg, #e0645c, #ff9a8a); }
+.hero-bars em { font-style: normal; font-family: 'Space Mono', monospace; font-size: 10px; width: 26px; text-align: right; opacity: 0.8; }

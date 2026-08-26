@@ -122,8 +122,21 @@ const UI = (() => {
     el.innerHTML =
       `<div class="rw"><span class="rw-n">+${r.coins}</span> 夜市幣</div>` +
       `<div class="rw"><span class="rw-n">+${r.xp}</span> 經驗</div>` +
-      (r.newRecord ? `<div class="rw rec">新紀錄 NEW RECORD · ${r.seconds.toFixed(1)}s</div>` : '') +
       (r.levelUp ? `<div class="rw up">升級！LEVEL ${r.level}</div>` : '');
+    // S8：破紀錄要全畫面有感 —— 金色印章 + 標題發光
+    const scr = $('end-screen');
+    let st = $('record-stamp');
+    if (!st && scr) { st = document.createElement('div'); st.id = 'record-stamp'; scr.appendChild(st); }
+    if (scr) scr.classList.toggle('new-record', !!r.newRecord);
+    if (st) {
+      st.classList.toggle('hidden', !r.newRecord);
+      if (r.newRecord) {
+        st.innerHTML = '🏆 新紀錄！<small>' +
+          (r.prevBest != null ? `之前最佳 ${r.prevBest.toFixed(1)}s → <b>${r.seconds.toFixed(1)}s</b>` : `首次通關 <b>${r.seconds.toFixed(1)}s</b>`) +
+          '</small>';
+        Sound.win();
+      }
+    }
     if (r.levelUp) Sound.win();
     toast(r.unlocked);
   }

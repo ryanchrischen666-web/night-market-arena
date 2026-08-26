@@ -116,12 +116,13 @@ const Online = (() => {
     if (!p) {
       p = document.createElement('div');
       p.id = 'online-panel';
-      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v16</span></h4>'
+      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v17</span></h4>'
                   + '<ul id="online-list"></ul><div class="om"></div>'
                   + '<div style="display:flex;gap:6px"><button id="online-mkroom-btn">開房間</button>'
                   + '<button id="online-joroom-btn">加入房間</button></div>'
                   + '<button id="online-name-btn">改名字</button>';
       (document.getElementById('stage') || document.body).appendChild(p);
+      p.querySelector('h4').addEventListener('click', () => { p.classList.toggle('expanded'); });
       p.querySelector('#online-name-btn').addEventListener('click', () => {
         const n = prompt('你的名字？', myName() || '');
         if (n && n.trim()) { setName(n.trim().slice(0, 16)); render(); }
