@@ -1,8 +1,8 @@
   /* ===== Mobile touch controls ===== */
   #touch-controls { display: none; position: fixed; inset: 0; z-index: 45; pointer-events: none; }
   body.touch.playing #touch-controls { display: block; }
-  #joy-zone { position: absolute; left: 0; bottom: 0; width: 40%; height: 80%; pointer-events: auto; }
-  #aim-zone { position: absolute; right: 0; bottom: 0; width: 40%; height: 80%; pointer-events: auto; }
+  #joy-zone { position: absolute; left: 0; bottom: 0; width: 34%; height: 80%; pointer-events: auto; }
+  #aim-zone { position: absolute; right: 0; bottom: 0; width: 34%; height: 80%; pointer-events: auto; }
   #joy { position: absolute; width: 124px; height: 124px; margin: -62px 0 0 -62px; border-radius: 50%; background: radial-gradient(circle, rgba(244,169,60,0.12), rgba(244,169,60,0.03)); border: 2px solid rgba(244,169,60,0.4); pointer-events: none; }
   #joy.hidden { display: none; }
   #joy-knob { position: absolute; left: 62px; top: 62px; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 14px rgba(0,0,0,0.55); }
@@ -17,7 +17,7 @@
   .tbtn-ab { width: 54px; height: 54px; font-size: 19px; color: #2a1640; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 0 #9a6a1e, 0 6px 16px rgba(0,0,0,0.45); }
   .tbtn-ab.cooling { background: #3a3348; color: rgba(245,230,200,0.4); box-shadow: 0 3px 0 #221d2e; }
   /* 技能鈕排在下緣中間偏右，離瞄準搖桿遠一點不誤觸 */
-  #touch-buttons { right: auto; left: 50%; margin-left: -30px; bottom: 10px; width: 200px; height: 70px; }
+  #touch-buttons { right: auto; left: 50%; margin-left: -100px; bottom: 14px; width: 200px; height: 70px; }
   #tb-q { left: 0; bottom: 0; }
   #tb-e { left: 66px; bottom: 0; }
   #tb-r { left: 132px; bottom: 0; }
@@ -36,16 +36,13 @@
   .tagline-en { display: block; margin-top: 9px; font-size: 12px; opacity: 0.65; }
   .end-en { display: block; font-family: 'Bungee', sans-serif; font-size: 24px; letter-spacing: 6px; margin-top: 4px; }
   body.touch #abilities-bar { display: none !important; }
-  /* 選角卡在矮螢幕縮小一點 */
-  @media (max-height: 480px) {
-    .hero-card { transform: scale(0.82); transform-origin: top center; margin-bottom: -40px; }
-  }
   /* 線上面板：手機預設收合成小藥丸，點標題展開 */
   body.touch #online-panel { width: auto; max-width: 210px; padding: 7px 10px; }
   body.touch #online-panel:not(.expanded) #online-list,
   body.touch #online-panel:not(.expanded) .om,
   body.touch #online-panel:not(.expanded) #online-name-btn,
-  body.touch #online-panel:not(.expanded) div { display: none; }
+  body.touch #online-panel:not(.expanded) div { display: none !important; }
+  body.touch #online-panel { right: auto; left: 10px; bottom: 10px; }
   body.touch #online-panel h4 { margin: 0; cursor: pointer; }
 
   /* ===== ⚙ 選單（手機收納 SFX/MUSIC）===== */
@@ -69,3 +66,54 @@
   body.touch.playing #touch-controls::before { content: '⬅ 這半邊滑動移動'; left: 6%; }
   body.touch.playing #touch-controls::after { content: '這半邊滑動瞄準射擊 ➡'; right: 6%; }
   @keyframes ctrlHint { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
+
+  /* ===== 手機：舞台撐滿全螢幕，遊戲畫面保持比例置中，選單吃滿整個橫向空間 ===== */
+  body.touch #stage {
+    width: 100vw; height: 100vh; height: 100dvh;
+    border: none; box-shadow: none;
+  }
+  body.touch canvas#game {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(100vw, 140.625vh); height: min(100vh, 71.111vw);
+  }
+
+  /* ===== 橫向手機：選角一頁放完，不用捲 ===== */
+  @media (pointer: coarse) and (max-height: 540px) {
+    .select-title { font-size: 20px; margin-bottom: 2px; }
+    .select-sub { font-size: 11px; margin-bottom: 6px; }
+    .heroes-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; width: 96vw; max-width: none; }
+    .hero-card { padding: 4px 8px; }
+    .hero-card .hero-title, .hero-card .hero-abilities, .hero-card .hero-stats, .hero-card .hero-role { display: none; }
+    .hero-card .hero-emoji { margin: 0; line-height: 0; height: 36px; display: flex; justify-content: center; }
+    .hero-card .hero-emoji canvas { width: 34px; height: 34px; }
+    .hero-card .hero-name { font-size: 9px; margin: 2px 0 0; }
+    .hero-card .hero-cn { font-size: 13px; margin: 0 0 2px; }
+    .hero-bars { margin: 2px 0 2px; }
+    .hero-bars .hb { margin: 1px 0; }
+    .hero-bars span { height: 5px; }
+    .hero-bars i { width: 22px; font-size: 9px; }
+    .hero-bars em { display: none; }
+    #select-screen .btn { padding: 7px 24px; font-size: 14px; margin-top: 4px; }
+    #select-screen { padding: 6px; }
+
+    /* 模式選擇：四張卡一排 */
+    .modes-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; width: 96vw; max-width: none; margin-top: 4px; }
+    .mode-card { padding: 8px; min-height: 0; }
+    .mode-card.mode-boss { grid-column: auto; }
+    .mode-card .mode-flavor { display: none; }
+    .mode-card .mode-num { font-size: 24px; }
+    .mode-card .mode-label { font-size: 11px; }
+    .mode-card .mode-mods { font-size: 10px; }
+    .vs-preview { display: none; }
+    .mode-card .mode-num { margin: 0; }
+    #mode-screen .btn { padding: 7px 24px; font-size: 14px; margin-top: 4px; }
+    #mode-screen { padding: 6px; }
+
+    /* 標題畫面塞得下 */
+    .title { font-size: 54px; }
+    .subtitle { font-size: 13px; }
+    .tagline { font-size: 12px; }
+    .tagline-en { display: none; }
+    #title-screen .btn { padding: 10px 30px; }
+    .name-row { margin: 6px 0 0; }
+  }
