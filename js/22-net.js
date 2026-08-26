@@ -352,7 +352,7 @@ const NetMatch = (() => {
       if (e.hostileNet && me0 && !me0.dead && !e._netDash.hit && Math.hypot(me0.x - e.x, me0.y - e.y) < me0.r + e.r + 6) {
         e._netDash.hit = true;
         player = me0; damagePlayer(e._netDash.dmg); player = players[0];
-        if (e._netDash.stun) me0.stunT = Math.max(me0.stunT || 0, e._netDash.stun);
+        if (e._netDash.stun) applyStunP(me0, e._netDash.stun);
         if (e._netDash.slow) { me0.slowT = Math.max(me0.slowT || 0, e._netDash.slow); me0.slowMulP = e._netDash.slowMul || 0.6; }
         spawnParticles(me0.x, me0.y, 18, e.color, { speed: 5, life: 0.6, size: 4 });
       }
@@ -363,8 +363,8 @@ const NetMatch = (() => {
       if (e._netLeap.t <= 0) {
         e._netLeap = null;
         if (e.hostileNet && me0 && !me0.dead) {
-          me0.stunT = Math.max(me0.stunT || 0, 2);
-          player = me0; damagePlayer(60); player = players[0];
+          applyStunP(me0, 0.9);
+          player = me0; damagePlayer(45); player = players[0];
           spawnParticles(me0.x, me0.y, 20, '#cc2936', { speed: 5, life: 0.6, size: 5 });
           spawnRing(me0.x, me0.y, '#ff5a4a', 56); addShake(8); addHitStop(0.08);
           Sound.slam();
@@ -521,9 +521,9 @@ const NetMatch = (() => {
           fx(e.x + Math.cos(ang) * 40, e.y + Math.sin(ang) * 40, 24, '#f4a93c', { speed: 5, life: 0.5, size: 4 }); },
         () => { zones.push({ type: 'oil', x: e.x, y: e.y, r: 50, life: 4, maxLife: 4 }); },
         () => { if (hostile && Math.hypot(me0.x - e.x, me0.y - e.y) < 300) {
-            cc(() => { me0.stunT = Math.max(me0.stunT, 2.5); }); hurt(25);
+            let wrapDur = 0; cc(() => { wrapDur = applyStunP(me0, 2.5); }); hurt(25);
             fx(me0.x, me0.y, 30, '#f5e6c8', { speed: 5, life: 0.8, size: 5 });
-            zones.push({ type: 'wrap', target: me0, life: 2.5, maxLife: 2.5 }); } },
+            if (wrapDur > 0) zones.push({ type: 'wrap', target: me0, life: wrapDur, maxLife: wrapDur }); } },
       ],
       squid: [
         () => P({ x: e.x, y: e.y, vx: Math.cos(ang) * 9, vy: Math.sin(ang) * 9, r: 10, dmg: 38, life: 0.7, color: '#a06b8c', pierce: true, kb: 25 }),
@@ -545,12 +545,12 @@ const NetMatch = (() => {
       ],
       bubble: [
         () => { fx(e.x, e.y, 12, '#ffcc6b', { speed: 3, life: 0.6, size: 3 }); },
-        () => P({ x: e.x, y: e.y, vx: Math.cos(ang) * 7, vy: Math.sin(ang) * 7, r: 8, dmg: 30, life: 0.8, color: '#a8d8ff',
-          onHitP: (proj, pv) => { if (Math.hypot(pv.x - proj.x, pv.y - proj.y) < 80) { pv.frozenT = Math.max(pv.frozenT, 1.2); player = pv; damagePlayer(25); player = players[0]; }
+        () => P({ x: e.x, y: e.y, vx: Math.cos(ang) * 7, vy: Math.sin(ang) * 7, r: 8, dmg: 22, life: 0.8, color: '#a8d8ff',
+          onHitP: (proj, pv) => { if (Math.hypot(pv.x - proj.x, pv.y - proj.y) < 80) { applyFreezeP(pv, 1.2); player = pv; damagePlayer(16); player = players[0]; }
             zones.push({ type: 'ice', x: proj.x, y: proj.y, r: 80, life: 1.0, maxLife: 1.0 });
             spawnParticles(proj.x, proj.y, 25, '#cfeaff', { speed: 6, life: 0.7, size: 5 }); } }),
-        () => { for (let k = 0; k < 11; k++) { const a = ang + (k - 5) * 0.09;
-            P({ x: e.x, y: e.y, vx: Math.cos(a) * 9, vy: Math.sin(a) * 9, r: 6, dmg: 22, life: 0.7, color: '#3a2a1a' }); } },
+        () => { for (let k = 0; k < 9; k++) { const a = ang + (k - 4) * 0.11;
+            P({ x: e.x, y: e.y, vx: Math.cos(a) * 9, vy: Math.sin(a) * 9, r: 6, dmg: 16, life: 0.7, color: '#3a2a1a' }); } },
       ],
       sausage: [
         () => { fx(e.x, e.y, 12, '#ff7733', { speed: 3, life: 0.5, size: 3 }); },
@@ -560,19 +560,21 @@ const NetMatch = (() => {
       ],
       hawthorn: [
         () => { for (let k = -1; k <= 1; k++) { const a = ang + k * 0.18;
-            P({ x: e.x, y: e.y, vx: Math.cos(a) * 8, vy: Math.sin(a) * 8, r: 5, dmg: 28, life: 0.8, color: '#cc2936' }); } },
-        () => { e.invisible = 4; fx(e.x, e.y, 30, '#cc2936', { speed: 6, life: 0.8, size: 5 }); },
+            P({ x: e.x, y: e.y, vx: Math.cos(a) * 8, vy: Math.sin(a) * 8, r: 5, dmg: 18, life: 0.8, color: '#cc2936' }); } },
+        () => { e.invisible = 2.5; fx(e.x, e.y, 30, '#cc2936', { speed: 6, life: 0.8, size: 5 }); },
         () => { if (hostile) e._netLeap = { t: 0.25 }; },
       ],
       oyster: [
         () => { fx(e.x, e.y, 24, '#ffe27a', { speed: 4, life: 0.8, size: 4 }); dmgText(e.x, e.y - 30, '+50', '#ffe27a'); },
-        () => { if (hostile) P({ x: e.x, y: e.y, vx: 0, vy: 0, r: 9, dmg: 45, life: 3, color: '#f4a261', homing: me0, speed: 5 }); },
+        () => { if (hostile) P({ x: e.x, y: e.y, vx: 0, vy: 0, r: 9, dmg: 32, life: 3, color: '#f4a261', homing: me0, speed: 5 }); },
         () => { zones.push({ type: 'slick', x: e.x, y: e.y, r: 110, life: 6, maxLife: 6, hostile }); },
       ],
       ribs: [
-        () => { if (hostile && Math.hypot(me0.x - e.x, me0.y - e.y) < 110 + me0.r) { hurt(18); cc(() => { me0.slowT = Math.max(me0.slowT, 1.5); me0.slowMulP = 0.7; }); }
-          zones.push({ type: 'smoke', x: e.x, y: e.y, r: 110, life: 0.8, maxLife: 0.8 });
-          fx(e.x, e.y, 26, '#9c8a6c', { speed: 4, life: 0.7, size: 5 }); },
+        () => { const sd = Math.min(Math.hypot(mx - e.x, my - e.y), 200);
+          const sx = e.x + Math.cos(ang) * sd, sy = e.y + Math.sin(ang) * sd;
+          if (hostile && Math.hypot(me0.x - sx, me0.y - sy) < 110 + me0.r) { hurt(18); cc(() => { me0.slowT = Math.max(me0.slowT, 1.5); me0.slowMulP = 0.7; }); }
+          zones.push({ type: 'smoke', x: sx, y: sy, r: 110, life: 0.8, maxLife: 0.8 });
+          fx(sx, sy, 26, '#9c8a6c', { speed: 4, life: 0.7, size: 5 }); },
         () => P({ x: e.x, y: e.y, vx: Math.cos(ang) * 8, vy: Math.sin(ang) * 8, r: 7, dmg: 22, life: 1.4, color: '#f5e6c8', pierce: true, boomerang: true, age: 0, owner: e }),
         () => { zones.push({ type: 'soup', x: e.x, y: e.y, r: 120, life: 7, maxLife: 7, healTimer: 0, cosmetic: true }); e.shield = 7; },
       ],

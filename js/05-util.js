@@ -81,6 +81,9 @@ function applyCC(unit, prop, dur) {
 }
 
 function applyStun(unit, dur) { return applyCC(unit, 'stun', dur); }
+// Players carry CC on stunT/frozenT rather than stun/frozen (netcode naming).
+function applyStunP(unit, dur) { return applyCC(unit, 'stunT', dur); }
+function applyFreezeP(unit, dur) { return applyCC(unit, 'frozenT', dur); }
 function applyFreeze(unit, dur) { return applyCC(unit, 'frozen', dur); }
 
 function damageEnemy(enemy, dmg, opts = {}) {

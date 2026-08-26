@@ -32,6 +32,7 @@ function makePlayer(heroId, idx) {
     atkBuff: 0, atkBuffMul: 1,
     stealth: 0, invuln: 0,
     stunT: 0, frozenT: 0, slowT: 0, slowMulP: 1,
+    ccDr: 0, ccDrTimer: 0,
     burnT: 0, burnDmgP: 0, burnTickP: 0,
     shield: 0, shieldMul: 1,
     burnNext: 0,
@@ -62,6 +63,7 @@ function updatePlayerCore(dt) {
   player.faceDir = (mouse.x >= player.x) ? 1 : -1;
 
   // === 玩家異常狀態（連線對戰用；單機的敵人技能也吃得到了）===
+  if (player.ccDrTimer > 0) { player.ccDrTimer -= dt; if (player.ccDrTimer <= 0) player.ccDr = 0; }
   if (player.stunT > 0) player.stunT -= dt;
   if (player.frozenT > 0) player.frozenT -= dt;
   if (player.slowT > 0) player.slowT -= dt;
