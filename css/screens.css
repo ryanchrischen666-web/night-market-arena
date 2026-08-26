@@ -137,15 +137,21 @@
 
 #end-screen { display: flex; flex-direction: column; align-items: center; }
 
+/* Smaller than hud.css's 72px: 夜市 is the title now, this is the verdict under it. */
+#end-screen .end-title { font-size: clamp(22px, min(4.4vw, 6vh), 40px); letter-spacing: 6px; }
+#end-screen .end-en { font-size: clamp(11px, 1.6vw, 15px); letter-spacing: 4px; margin-top: 2px; }
+
 .end-brand {
   font-family: 'Noto Serif TC', serif;
   font-weight: 900;
-  font-size: clamp(64px, 13vw, 132px);
+  font-size: clamp(38px, min(8vw, 11vh), 82px);
   letter-spacing: 0.14em;
-  line-height: 1;
+  /* CJK serif glyphs overshoot a line-height:1 box and get clipped at the top. */
+  line-height: 1.12;
+  padding-top: 2px;
   color: var(--lantern);
-  text-shadow: 0 6px 0 var(--red-deep), 0 0 42px rgba(244, 169, 60, 0.42);
-  margin-bottom: 6px;
+  text-shadow: 0 5px 0 var(--red-deep), 0 0 34px rgba(244, 169, 60, 0.42);
+  margin-bottom: 4px;
 }
 
 .end-brand::after {
@@ -153,19 +159,19 @@
   display: block;
   width: 62%;
   height: 3px;
-  margin: 14px auto 0;
+  margin: 10px auto 0;
   background: linear-gradient(90deg, transparent, var(--lantern), transparent);
   transform: scaleX(0);
   transform-origin: center;
 }
 
-.end-stat-rows { list-style: none; margin: 26px 0 0; padding: 0; min-width: min(360px, 78vw); }
+.end-stat-rows { list-style: none; margin: 16px 0 0; padding: 0; min-width: min(360px, 78vw); }
 
 .end-stat-rows li {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  padding: 7px 0;
+  padding: 5px 0;
   border-bottom: 1px dashed rgba(245, 230, 200, 0.16);
 }
 
@@ -189,12 +195,12 @@
 }
 
 .end-advice {
-  margin-top: 20px;
+  margin-top: 14px;
   max-width: min(420px, 84vw);
   font-family: 'Noto Serif TC', serif;
-  font-size: 14px;
-  line-height: 1.9;
-  letter-spacing: 0.08em;
+  font-size: 13px;
+  line-height: 1.75;
+  letter-spacing: 0.06em;
   text-align: center;
   color: var(--jade);
   border-left: 2px solid var(--jade);
@@ -202,11 +208,11 @@
   padding: 6px 16px;
 }
 
-.end-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 26px; }
+.end-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
 
 /* --- the sequence --- */
 @keyframes endBrandDrop {
-  from { opacity: 0; transform: translate3d(0, -140%, 0) scale(1.12); }
+  from { opacity: 0; transform: translate3d(0, -56px, 0) scale(1.1); }
   to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes endRuleSweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -251,4 +257,20 @@
   #end-screen.animate .end-advice,
   #end-screen.animate .end-actions { animation: none !important; opacity: 1; transform: none; }
   #end-screen.animate .end-brand::after { transform: scaleX(1); }
+}
+
+/* Short stage (phone landscape): #stage drops to ~330px of usable height,
+   so the end column has to compact or it gets clipped. */
+@media (max-height: 520px), (max-width: 700px) {
+  .end-brand { font-size: clamp(32px, min(7vw, 13vh), 48px); margin-bottom: 2px; }
+  .end-brand::after { margin-top: 6px; height: 2px; }
+  #end-screen .end-title { font-size: clamp(18px, 5vh, 26px); letter-spacing: 4px; }
+  #end-screen .end-en { font-size: 10px; letter-spacing: 3px; margin-top: 1px; }
+  .end-stat-rows { margin-top: 8px; min-width: min(320px, 84vw); }
+  .end-stat-rows li { padding: 1px 0; }
+  .end-stat-rows .label { font-size: 12px; letter-spacing: 0.14em; }
+  .end-stat-rows .value { font-size: 15px; }
+  .end-advice { margin-top: 8px; font-size: 11px; line-height: 1.5; padding: 3px 12px; }
+  .end-actions { margin-top: 8px; gap: 8px; }
+  #end-screen .rewards { margin-top: 6px; font-size: 10px; gap: 10px; }
 }
