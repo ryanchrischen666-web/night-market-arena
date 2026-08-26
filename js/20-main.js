@@ -118,6 +118,12 @@ document.getElementById('restart-btn').addEventListener('click', () => {
 
 // ===== Mobile touch controls =====
 function autoAimPoint(p) {
+  // 2.5 秒內用過右搖桿 → 技能沿著你瞄的方向出，不搶自動鎖定
+  if (mobileAim.active || performance.now() - mobileAim.lastT < 2500) {
+    const dx = mobileAim.active ? mobileAim.dx : mobileAim.lastDx;
+    const dy = mobileAim.active ? mobileAim.dy : mobileAim.lastDy;
+    return { x: p.x + dx * 260, y: p.y + dy * 260 };
+  }
   const e = nearestEnemy(p.x, p.y);
   if (e) return { x: e.x, y: e.y };
   return { x: p.x + Math.cos(p.facing) * 240, y: p.y + Math.sin(p.facing) * 240 };
@@ -187,6 +193,55 @@ function initTouch() {
   zone.addEventListener('touchend', endJoy, { passive: false });
   zone.addEventListener('touchcancel', endJoy, { passive: false });
 
+  // ===== 右搖桿：瞄準 + 射擊 =====
+  const azone = document.getElementById('aim-zone');
+  const aimEl = document.getElementById('aim');
+  const aimKnob = document.getElementById('aim-knob');
+  if (azone) {
+    let aimId = null, aox = 0, aoy = 0, aimT0 = 0, aimMoved = false;
+    const AR = 46;
+    azone.addEventListener('touchstart', (e) => {
+      e.preventDefault(); if (aimId !== null) return;
+      const t = e.changedTouches[0];
+      aimId = t.identifier; aox = t.clientX; aoy = t.clientY;
+      aimT0 = performance.now(); aimMoved = false;
+      aimEl.style.left = aox + 'px'; aimEl.style.top = aoy + 'px';
+      aimEl.classList.remove('hidden');
+      aimKnob.style.left = '46px'; aimKnob.style.top = '46px';
+    }, { passive: false });
+    azone.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        if (t.identifier !== aimId) continue;
+        let dx = t.clientX - aox, dy = t.clientY - aoy;
+        const len = Math.hypot(dx, dy);
+        if (len > 12) aimMoved = true;
+        const cl = Math.min(len, AR);
+        const nx = len ? dx / len : 0, ny = len ? dy / len : 0;
+        aimKnob.style.left = (46 + nx * cl) + 'px';
+        aimKnob.style.top = (46 + ny * cl) + 'px';
+        if (len > 12) {
+          mobileAim.active = true;
+          mobileAim.dx = nx; mobileAim.dy = ny;
+          mobileAim.lastDx = nx; mobileAim.lastDy = ny; mobileAim.lastT = performance.now();
+        } else mobileAim.active = false;
+      }
+    }, { passive: false });
+    const endAim = (e) => {
+      for (const t of e.changedTouches) {
+        if (t.identifier !== aimId) continue;
+        aimId = null; aimEl.classList.add('hidden');
+        if (!aimMoved && performance.now() - aimT0 < 240) {
+          mobileAim.lastT = 0;          // 輕點：回到自動鎖定打一下
+          mouse.tapAtk = true;
+        }
+        mobileAim.active = false;
+      }
+    };
+    azone.addEventListener('touchend', endAim, { passive: false });
+    azone.addEventListener('touchcancel', endAim, { passive: false });
+  }
+
   const atk = document.getElementById('tb-atk');
   atk.addEventListener('touchstart', (e) => { e.preventDefault(); mouse.down = true; mouse.tapAtk = true; }, { passive: false });
   atk.addEventListener('touchend', (e) => { e.preventDefault(); mouse.down = false; }, { passive: false });
@@ -231,6 +286,7 @@ window.PlayerName = PlayerName;   // top-level const 不會自動掛上 window
   on('shop-btn',     () => { Sound.ui(); UI.openScreen('shop-screen');  UI.renderShop(); });
   on('tutorial-btn', () => { Sound.init(); Sound.resume(); Sound.ui(); Tutorial.start(); });
   on('pause-btn',    () => setPaused(true));
+  on('mob-menu-btn', () => { Sound.ui(); document.getElementById('audio-controls').classList.toggle('open'); });
   on('select-home-btn', () => {
     if (window.NetMatch && NetMatch.active) NetMatch.leaveRoom();
     Sound.uiBack(); resetHeroPick();

@@ -32,4 +32,5 @@ let rings = [];
 let paused = false;
 let touchMode = false;
 let mobileMove = { active: false, dx: 0, dy: 0 };
+let mobileAim = { active: false, dx: 0, dy: 0, lastDx: 0, lastDy: -1, lastT: 0 };
 

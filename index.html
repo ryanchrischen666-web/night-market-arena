@@ -15,6 +15,7 @@
 
 </head>
 <body>
+<button id="mob-menu-btn" aria-label="選單">⚙</button>
 <div id="audio-controls">
   <button id="sfx-toggle" title="Sound effects">SFX</button>
   <button id="music-toggle" title="Music (M)">MUSIC</button>
@@ -174,7 +175,9 @@
 
 <div id="touch-controls" aria-hidden="true">
   <div id="joy-zone"></div>
+  <div id="aim-zone"></div>
   <div id="joy" class="hidden"><div id="joy-knob"></div></div>
+  <div id="aim" class="hidden"><div id="aim-knob"></div></div>
   <div id="touch-buttons">
     <button class="tbtn tbtn-ab" id="tb-q"><span class="tb-ic"></span></button>
     <button class="tbtn tbtn-ab" id="tb-e"><span class="tb-ic"></span></button>
@@ -185,29 +188,29 @@
 <div id="rotate-hint"><div class="rh"><span class="ph">📱</span>Rotate to landscape<small>Night Market Arena plays best sideways</small></div></div>
 
 <!-- 載入順序即正確性：classic script 不跨檔 hoist，請勿調換 -->
-<script src="js/00-abilities.js?v17"></script>
-<script src="js/01-heroes.js?v17"></script>
-<script src="js/02-modes.js?v17"></script>
-<script src="js/03-state.js?v17"></script>
-<script src="js/04-input.js?v17"></script>
-<script src="js/05-util.js?v17"></script>
-<script src="js/06-sound.js?v17"></script>
-<script src="js/07-enemy-ai.js?v17"></script>
-<script src="js/08-ui-select.js?v17"></script>
-<script src="js/09-match.js?v17"></script>
-<script src="js/10-update.js?v17"></script>
-<script src="js/11-map.js?v17"></script>
-<script src="js/12-render.js?v17"></script>
-<script src="js/13-art.js?v17"></script>
-<script src="js/14-boss.js?v17"></script>
-<script src="js/15-draw.js?v17"></script>
-<script src="js/16-save.js?v17"></script>
-<script src="js/17-progress.js?v17"></script>
-<script src="js/18-tutorial.js?v17"></script>
-<script src="js/19-ui-meta.js?v17"></script>
-<script src="js/20-main.js?v17"></script>
-<script src="js/21-online.js?v17"></script>
-<script src="js/22-net.js?v17"></script>
+<script src="js/00-abilities.js?v18"></script>
+<script src="js/01-heroes.js?v18"></script>
+<script src="js/02-modes.js?v18"></script>
+<script src="js/03-state.js?v18"></script>
+<script src="js/04-input.js?v18"></script>
+<script src="js/05-util.js?v18"></script>
+<script src="js/06-sound.js?v18"></script>
+<script src="js/07-enemy-ai.js?v18"></script>
+<script src="js/08-ui-select.js?v18"></script>
+<script src="js/09-match.js?v18"></script>
+<script src="js/10-update.js?v18"></script>
+<script src="js/11-map.js?v18"></script>
+<script src="js/12-render.js?v18"></script>
+<script src="js/13-art.js?v18"></script>
+<script src="js/14-boss.js?v18"></script>
+<script src="js/15-draw.js?v18"></script>
+<script src="js/16-save.js?v18"></script>
+<script src="js/17-progress.js?v18"></script>
+<script src="js/18-tutorial.js?v18"></script>
+<script src="js/19-ui-meta.js?v18"></script>
+<script src="js/20-main.js?v18"></script>
+<script src="js/21-online.js?v18"></script>
+<script src="js/22-net.js?v18"></script>
 
 
 

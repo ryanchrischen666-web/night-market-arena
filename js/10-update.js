@@ -50,7 +50,17 @@ function makePlayer(heroId, idx) {
 function updatePlayer(p, dt) {
   player = p;
   const _vpx = p.x, _vpy = p.y;
-  if (touchMode) { const ap = autoAimPoint(p); mouse.x = ap.x; mouse.y = ap.y; }
+  if (touchMode) {
+    if (mobileAim.active) {
+      // 右搖桿：往哪裡瞄就往哪裡打，按著就連射
+      mouse.x = p.x + mobileAim.dx * 280;
+      mouse.y = p.y + mobileAim.dy * 280;
+      mouse.down = true; mobileAim._firing = true;
+    } else {
+      if (mobileAim._firing) { mouse.down = false; mobileAim._firing = false; }
+      const ap = autoAimPoint(p); mouse.x = ap.x; mouse.y = ap.y;
+    }
+  }
   p.aim.x = mouse.x; p.aim.y = mouse.y;
   updatePlayerCore(dt);
   p.vx = (p.vx || 0) * 0.5 + (p.x - _vpx) * 0.5;

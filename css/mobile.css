@@ -1,19 +1,26 @@
   /* ===== Mobile touch controls ===== */
   #touch-controls { display: none; position: fixed; inset: 0; z-index: 45; pointer-events: none; }
   body.touch.playing #touch-controls { display: block; }
-  #joy-zone { position: absolute; left: 0; bottom: 0; width: 42%; height: 80%; pointer-events: auto; }
+  #joy-zone { position: absolute; left: 0; bottom: 0; width: 40%; height: 80%; pointer-events: auto; }
+  #aim-zone { position: absolute; right: 0; bottom: 0; width: 40%; height: 80%; pointer-events: auto; }
   #joy { position: absolute; width: 124px; height: 124px; margin: -62px 0 0 -62px; border-radius: 50%; background: radial-gradient(circle, rgba(244,169,60,0.12), rgba(244,169,60,0.03)); border: 2px solid rgba(244,169,60,0.4); pointer-events: none; }
   #joy.hidden { display: none; }
   #joy-knob { position: absolute; left: 62px; top: 62px; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 14px rgba(0,0,0,0.55); }
+  #aim { position: absolute; width: 92px; height: 92px; margin: -46px 0 0 -46px; border-radius: 50%; background: radial-gradient(circle, rgba(214,40,40,0.16), rgba(214,40,40,0.04)); border: 2px solid rgba(255,110,90,0.5); pointer-events: none; z-index: 46; }
+  #aim.hidden { display: none; }
+  #aim-knob { position: absolute; left: 46px; top: 46px; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #ff8a5a, #d62828); box-shadow: 0 4px 14px rgba(0,0,0,0.6); }
+  #aim::after { content: '瞄準·射擊'; position: absolute; left: 50%; top: -22px; transform: translateX(-50%); font-family: 'Noto Serif TC', serif; font-size: 11px; color: rgba(255,180,150,0.8); white-space: nowrap; }
   #touch-buttons { position: absolute; right: 16px; bottom: 18px; width: 200px; height: 190px; pointer-events: none; }
   .tbtn { position: absolute; pointer-events: auto; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif TC', serif; font-weight: 900; -webkit-tap-highlight-color: transparent; touch-action: none; transition: transform .06s; }
   .tbtn:active { transform: scale(0.9); }
-  .tbtn-atk { right: 0; bottom: 0; width: 96px; height: 96px; font-size: 30px; color: #fff; background: radial-gradient(circle at 38% 32%, #ff8a5a, #d62828); box-shadow: 0 5px 0 #7a1414, 0 8px 22px rgba(214,40,40,0.5); }
-  .tbtn-ab { width: 62px; height: 62px; font-size: 22px; color: #2a1640; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 0 #9a6a1e, 0 6px 16px rgba(0,0,0,0.45); }
+  .tbtn-atk { display: none; }   /* 右搖桿取代攻擊鈕 */
+  .tbtn-ab { width: 54px; height: 54px; font-size: 19px; color: #2a1640; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 0 #9a6a1e, 0 6px 16px rgba(0,0,0,0.45); }
   .tbtn-ab.cooling { background: #3a3348; color: rgba(245,230,200,0.4); box-shadow: 0 3px 0 #221d2e; }
-  #tb-q { right: 108px; bottom: 4px; }
-  #tb-e { right: 96px; bottom: 84px; }
-  #tb-r { right: 20px; bottom: 116px; }
+  /* 技能鈕排在下緣中間偏右，離瞄準搖桿遠一點不誤觸 */
+  #touch-buttons { right: auto; left: 50%; margin-left: -30px; bottom: 10px; width: 200px; height: 70px; }
+  #tb-q { left: 0; bottom: 0; }
+  #tb-e { left: 66px; bottom: 0; }
+  #tb-r { left: 132px; bottom: 0; }
   .tb-ic { pointer-events: none; }
   body.touch .controls-hint { display: none; }
   /* ===== Rotate-to-landscape hint ===== */
@@ -40,3 +47,25 @@
   body.touch #online-panel:not(.expanded) #online-name-btn,
   body.touch #online-panel:not(.expanded) div { display: none; }
   body.touch #online-panel h4 { margin: 0; cursor: pointer; }
+
+  /* ===== ⚙ 選單（手機收納 SFX/MUSIC）===== */
+  #mob-menu-btn { display: none; }
+  body.touch #mob-menu-btn { display: block; position: fixed; top: 10px; right: 10px; z-index: 60;
+    width: 38px; height: 34px; border-radius: 9px; border: 2px solid rgba(244,169,60,0.5);
+    background: rgba(28,16,44,0.85); color: var(--lantern); font-size: 17px; line-height: 1; }
+  body.touch #audio-controls { display: none; }
+  body.touch #audio-controls.open { display: flex; flex-direction: column; gap: 6px;
+    position: fixed; top: 50px; right: 10px; z-index: 60; }
+  body.touch #pause-btn { top: 10px; right: 56px; width: 38px; height: 34px; }
+
+  /* 開場 4 秒的操作提示，淡出後不擋事 */
+  body.touch.playing #touch-controls::before,
+  body.touch.playing #touch-controls::after {
+    position: absolute; bottom: 34%; font-family: 'Noto Serif TC', serif; font-size: 15px;
+    color: rgba(245,230,200,0.85); text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    letter-spacing: 2px; pointer-events: none; text-align: center;
+    animation: ctrlHint 4s ease forwards;
+  }
+  body.touch.playing #touch-controls::before { content: '⬅ 這半邊滑動移動'; left: 6%; }
+  body.touch.playing #touch-controls::after { content: '這半邊滑動瞄準射擊 ➡'; right: 6%; }
+  @keyframes ctrlHint { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
