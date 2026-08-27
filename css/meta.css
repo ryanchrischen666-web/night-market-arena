@@ -259,6 +259,13 @@ body.touch #pause-btn { top: calc(8px + env(safe-area-inset-top, 0px)); right: c
 .room-hero.rh-locked { opacity: 0.45; cursor: not-allowed; }
 
 /* ===== 英雄詳情 ===== */
+#hero-detail-screen { justify-content: flex-start; }
+#hero-detail-screen > .hd-wrap { margin-top: auto; margin-bottom: auto; flex-shrink: 0; }
+@media (max-height: 760px) {
+  #hd-art { width: 210px; height: 210px; }
+  .hd-halo { width: 190px; height: 190px; }
+  .hd-name b { font-size: 22px; }
+}
 #hd-back { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px)); z-index: 5; }
 .hd-wrap { display: flex; gap: 34px; align-items: center; justify-content: center; width: min(92vw, 820px); }
 .hd-left { position: relative; text-align: center; flex: 0 0 auto; }
