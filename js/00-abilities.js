@@ -218,15 +218,10 @@ function castCrispyCoat() {
   spawnRing(player.x, player.y, '#ffd166', 46);
 }
 function castCutletFeast() {
-  for (let k = 0; k < 8; k++) {
-    const a = (Math.PI * 2 * k) / 8;
-    projectiles.push({ x: player.x, y: player.y, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7,
-      r: 16, dmg: 22, life: 0.9, color: '#f0b429', team: 'player', pierce: true, style: 'wave' });
-  }
-  player.hp = Math.min(player.maxHp, player.hp + 30);
-  dmgText(player.x, player.y - 30, '+30', '#ffe27a');
+  // 雞排放題：持續 3 秒朝準星連發酥浪，每道浪打中就吸多少血；再按一次 R 提前收攤
+  player.feastT = 3; player.feastTick = 0;
   spawnRing(player.x, player.y, '#ffd166', 70);
-  updateHud();
+  spawnParticles(player.x, player.y, 18, '#ffd166', { speed: 4, life: 0.6, size: 4 });
 }
 
 // Predict where to aim so a shot of `projSpeed` intercepts a moving target.

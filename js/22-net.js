@@ -507,9 +507,9 @@ const NetMatch = (() => {
   }
 
   // ---------- 戰鬥事件 ----------
-  function sendAttack(ang, mul, burn) {
+  function sendAttack(ang, mul, burn, rw) {
     if (!ch || !inMatch) return;
-    try { ch.send({ type: 'broadcast', event: 'atk', payload: { u: myId(), a: ang, m: mul, b: burn ? 1 : 0 } }); } catch (e) {}
+    try { ch.send({ type: 'broadcast', event: 'atk', payload: { u: myId(), a: ang, m: mul, b: burn ? 1 : 0, rw: rw ? 1 : 0 } }); } catch (e) {}
   }
   function sendCast(i, mx, my) {
     if (!ch || !inMatch) return;
@@ -549,6 +549,13 @@ const NetMatch = (() => {
     const hostile = e.hostileNet;
     const ang = pl.a, _mul = pl.m || 1, _burn = !!pl.b;
     const h = HEROES[e.id];
+    if (pl.rw) {   // 雞排放題的持續光波（吸血在施放者本地算）
+      projectiles.push({ x: e.x + Math.cos(ang) * (e.r + 6), y: e.y + Math.sin(ang) * (e.r + 6),
+        vx: Math.cos(ang) * 8.5, vy: Math.sin(ang) * 8.5, r: 16, dmg: 16, life: 1.0,
+        color: '#ffd166', team: hostile ? 'enemy' : 'fx', pierce: true, style: 'wave', srcU: pl.u });
+      Sound.shot('chicken');
+      return;
+    }
     if (h.atkRange < 100) {
       const range = h.atkRange, p = players[0];
       if (hostile && p && !p.dead) {
@@ -665,10 +672,7 @@ const NetMatch = (() => {
           vx: Math.cos(ang) * 8, vy: Math.sin(ang) * 8, r: 26, dmg: 30, life: 1.1,
           color: '#f0b429', pierce: true, style: 'wave', srcU: plo.u, slowOnHit: 1.5, slowMulOnHit: 0.65 }),
         () => { e.shield = 3; fx(e.x, e.y, 20, '#f0b429', { speed: 4, life: 0.7, size: 4 }); spawnRing(e.x, e.y, '#ffd166', 46); },
-        () => { for (let k = 0; k < 8; k++) { const a = (Math.PI * 2 * k) / 8;
-            P({ x: e.x, y: e.y, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7, r: 16, dmg: 22, life: 0.9,
-              color: '#f0b429', pierce: true, style: 'wave', srcU: plo.u }); }
-          dmgText(e.x, e.y - 30, '+30', '#ffe27a'); spawnRing(e.x, e.y, '#ffd166', 70); },
+        () => { spawnRing(e.x, e.y, '#ffd166', 70); fx(e.x, e.y, 18, '#ffd166', { speed: 4, life: 0.6, size: 4 }); },   // 放題開始（傷害浪逐發送達）
       ],
       ribs: [
         () => { const sd = Math.min(Math.hypot(mx - e.x, my - e.y), 200);

@@ -107,6 +107,9 @@ function updateAbilityBar() {
 
 function tryCast(i) {
   const ab = player.abilities[i];
+  if (player === players[0] && player.id === 'chicken' && i === 2 && player.feastT > 0) {
+    player.feastT = 0; Sound.uiBack(); return;   // 再按一次：提前收攤
+  }
   if (!ab || ab.timer > 0) return;
   if (player === players[0] && (player.stunT > 0 || player.frozenT > 0)) return;
   // A cast that returns false fizzled (no valid target) and costs no cooldown.

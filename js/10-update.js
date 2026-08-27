@@ -34,6 +34,7 @@ function makePlayer(heroId, idx) {
     stunT: 0, frozenT: 0, slowT: 0, slowMulP: 1,
     ccDr: 0, ccDrTimer: 0,
     burnT: 0, burnDmgP: 0, burnTickP: 0,
+    feastT: 0, feastTick: 0,
     shield: 0, shieldMul: 1,
     burnNext: 0,
     hitFlash: 0,
@@ -180,6 +181,32 @@ function updatePlayerCore(dt) {
     if (window.NetMatch && NetMatch.active && currentMode === 'net') { hp.gone = true; NetMatch.sendProp(_pi); }
   }
 
+
+  // === 雞排放題：持續光波（吸血）===
+  if (player.feastT > 0) {
+    player.feastT -= dt;
+    player.feastTick -= dt;
+    if (player.feastTick <= 0 && !_cc) {
+      player.feastTick = 0.35;
+      const fAng = angleTo(player, mouse);
+      projectiles.push({
+        x: player.x + Math.cos(fAng) * (player.r + 6), y: player.y + Math.sin(fAng) * (player.r + 6),
+        vx: Math.cos(fAng) * 8.5, vy: Math.sin(fAng) * 8.5, r: 16, dmg: 16, life: 1.0,
+        color: '#ffd166', team: 'player', pierce: true, style: 'wave', owner: player,
+        onHit: (proj, target) => {
+          const o = proj.owner;
+          if (o && !o.dead && o.hp < o.maxHp) {
+            o.hp = Math.min(o.maxHp, o.hp + proj.dmg);
+            dmgText(o.x, o.y - 34, '+' + proj.dmg, '#7ddf6b');
+            updateHud();
+          }
+        },
+      });
+      spawnParticles(player.x + Math.cos(fAng) * 24, player.y + Math.sin(fAng) * 24, 6, '#ffd166', { speed: 3, life: 0.25, size: 3 });
+      Sound.shot('chicken');
+      if (window.NetMatch && NetMatch.active && player === players[0]) NetMatch.sendAttack(fAng, 1, false, true);
+    }
+  }
 
   // Basic attack
   if ((mouse.down || mouse.tapAtk) && player.atkTimer <= 0 && !_cc) {

@@ -129,10 +129,11 @@ function autoAimPoint(p) {
   if (e) return { x: e.x, y: e.y };
   return { x: p.x + Math.cos(p.facing) * 240, y: p.y + Math.sin(p.facing) * 240 };
 }
-function mobileCast(i) {
+function mobileCast(i, ax, ay) {
   if (state !== 'playing' || !players[0] || players[0].dead) return;
   const p = players[0]; player = p;
-  const ap = autoAimPoint(p); mouse.x = ap.x; mouse.y = ap.y;
+  if (ax != null) { mouse.x = ax; mouse.y = ay; }
+  else { const ap = autoAimPoint(p); mouse.x = ap.x; mouse.y = ap.y; }
   tryCast(i);
 }
 function buildMobileButtons() {
@@ -247,9 +248,43 @@ function initTouch() {
   atk.addEventListener('touchstart', (e) => { e.preventDefault(); mouse.down = true; mouse.tapAtk = true; }, { passive: false });
   atk.addEventListener('touchend', (e) => { e.preventDefault(); mouse.down = false; }, { passive: false });
   atk.addEventListener('touchcancel', () => { mouse.down = false; });
+  // 技能鍵：輕點＝自動鎖定；按住拖曳＝手動瞄準（跟 ⚔ 攻擊鍵同手感）
   [['tb-q', 0], ['tb-e', 1], ['tb-r', 2]].forEach(([id, i]) => {
     const b = document.getElementById(id);
-    b.addEventListener('touchstart', (e) => { e.preventDefault(); mobileCast(i); }, { passive: false });
+    let sid = null, sox = 0, soy = 0, sdx = 0, sdy = 0, smoved = false;
+    b.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      sid = t.identifier; sox = t.clientX; soy = t.clientY; smoved = false;
+      aimEl.style.left = sox + 'px'; aimEl.style.top = soy + 'px';
+      aimKnob.style.left = '46px'; aimKnob.style.top = '46px';
+    }, { passive: false });
+    b.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        if (t.identifier !== sid) continue;
+        const dx = t.clientX - sox, dy = t.clientY - soy, len = Math.hypot(dx, dy);
+        if (len > 14) {
+          smoved = true; sdx = dx / len; sdy = dy / len;
+          aimEl.classList.remove('hidden');
+          const cl = Math.min(len, 46);
+          aimKnob.style.left = (46 + sdx * cl) + 'px'; aimKnob.style.top = (46 + sdy * cl) + 'px';
+        }
+      }
+    }, { passive: false });
+    const endSkill = (e) => {
+      for (const t of e.changedTouches) {
+        if (t.identifier !== sid) continue;
+        sid = null; aimEl.classList.add('hidden');
+        if (smoved) {
+          const p = players[0];
+          mobileAim.lastDx = sdx; mobileAim.lastDy = sdy; mobileAim.lastT = performance.now();
+          if (p) mobileCast(i, p.x + sdx * 260, p.y + sdy * 260);
+        } else mobileCast(i);
+      }
+    };
+    b.addEventListener('touchend', endSkill, { passive: false });
+    b.addEventListener('touchcancel', endSkill, { passive: false });
   });
   // lock page scroll / synthesized mouse during gameplay (menus stay scrollable)
   document.addEventListener('touchmove', (e) => { if (touchMode && state === 'playing') e.preventDefault(); }, { passive: false });
