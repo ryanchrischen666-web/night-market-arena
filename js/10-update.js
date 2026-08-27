@@ -559,6 +559,13 @@ function fireBasicAttack() {
     zones.push({ type: 'swing', x: player.x, y: player.y, ang, range, color: player.color, span, half, heavy, life: slife, maxLife: slife });
     spawnParticles(player.x + Math.cos(ang)*range*0.7, player.y + Math.sin(ang)*range*0.7, 8, '#ffffff', { speed: 4, life: 0.25, size: 2 });
     Sound.swing(player.id);
+  } else if (player.id === 'chicken') {
+    // 金黃雞排：寬幅酥浪，打穿一整排（範圍型普攻）
+    const _mx = player.x + Math.cos(ang) * (player.r + 6), _my = player.y + Math.sin(ang) * (player.r + 6);
+    projectiles.push({ x: _mx, y: _my, vx: Math.cos(ang) * 8, vy: Math.sin(ang) * 8, r: 18,
+      dmg: player.atkDmg, life: 1.0, color: '#f0b429', team: 'player', pierce: true, style: 'wave', owner: player });
+    spawnParticles(_mx, _my, 8, '#ffd166', { speed: 3, life: 0.3, size: 3 });
+    Sound.shot(player.id);
   } else {
     const _st = ({squid:'ink',bubble:'pearl'})[player.id] || 'bolt';
     const _mx = player.x + Math.cos(ang)*(player.r+6), _my = player.y + Math.sin(ang)*(player.r+6);

@@ -72,6 +72,67 @@ function _mouth(g, cx, cy, w, type) {
 function drawHeroArt(g, id, R, t, blink) {
   const look = 0.5;
   switch (id) {
+    case 'chicken': {
+      const cy = -R * 1.05;
+      // 蒸氣（隨時間搖曳）
+      g.save();
+      g.strokeStyle = 'rgba(255,240,210,0.5)'; g.lineWidth = R * 0.09; g.lineCap = 'round';
+      for (const sx of [-0.45, 0.05, 0.5]) {
+        const ph = t * 3 + sx * 5;
+        g.beginPath();
+        g.moveTo(sx * R, cy - R * 1.05);
+        g.quadraticCurveTo(sx * R + Math.sin(ph) * R * 0.22, cy - R * 1.45, sx * R + Math.sin(ph + 1.2) * R * 0.15, cy - R * 1.8);
+        g.stroke();
+      }
+      g.restore();
+      // 本體：大片雞排（圓角梯形），酥脆鋸齒邊
+      const w = R * 1.15, h = R * 1.0;
+      g.beginPath();
+      const bumps = 16;
+      for (let i = 0; i <= bumps; i++) {
+        const a = (Math.PI * 2 * i) / bumps;
+        const wob = 1 + 0.085 * Math.sin(a * 5 + 1.3) + 0.05 * Math.cos(a * 3);
+        const px = Math.cos(a) * w * wob, py = cy + Math.sin(a) * h * wob * (a < Math.PI ? 1.06 : 0.94);
+        i === 0 ? g.moveTo(px, py) : g.lineTo(px, py);
+      }
+      g.closePath();
+      g.fillStyle = _vg(g, cy - h, cy + h, '#ffd97a', '#f0a832', '#b06b1a');
+      g.fill(); _ol(g, R * 0.16);
+      // 咬一口的缺角（露出白肉）
+      g.save();
+      g.beginPath(); g.arc(w * 0.62, cy - h * 0.62, R * 0.34, 0, Math.PI * 2); g.clip();
+      g.fillStyle = '#fff3e0'; g.fillRect(w * 0.2, cy - h * 1.2, R, R);
+      g.strokeStyle = 'rgba(140,80,20,0.6)'; g.lineWidth = R * 0.05;
+      g.beginPath(); g.arc(w * 0.62, cy - h * 0.62, R * 0.3, 0, Math.PI * 2); g.stroke();
+      g.restore();
+      // 酥皮質感：小凸粒
+      g.fillStyle = 'rgba(140,80,15,0.35)';
+      for (const sp of [[-0.55,-0.25,0.09],[-0.15,-0.5,0.07],[0.3,0.1,0.08],[-0.35,0.3,0.07],[0.15,0.5,0.09],[0.55,0.35,0.06],[-0.7,0.1,0.06]]) {
+        g.beginPath(); g.arc(sp[0] * w, cy + sp[1] * h, sp[2] * R, 0, Math.PI * 2); g.fill();
+      }
+      // 芝麻與辣椒粉
+      for (const sm of [[-0.4,-0.05],[0.05,-0.3],[0.42,-0.18],[-0.1,0.28],[0.3,0.42]]) {
+        g.save(); g.translate(sm[0] * w, cy + sm[1] * h); g.rotate(sm[0] * 3);
+        g.fillStyle = '#fff8e8'; g.beginPath(); g.ellipse(0, 0, R * 0.075, R * 0.045, 0, 0, Math.PI * 2); g.fill();
+        g.restore();
+      }
+      g.fillStyle = 'rgba(214,40,40,0.75)';
+      for (const cp of [[-0.25,-0.35],[0.18,0.05],[-0.5,0.42],[0.48,-0.42]]) {
+        g.fillRect(cp[0] * w, cy + cp[1] * h, R * 0.06, R * 0.06);
+      }
+      _gloss(g, -w * 0.35, cy - h * 0.55, R * 0.55, R * 0.22, 0.35);
+      // 得意的表情
+      _eyes(g, 0, cy - R * 0.02, R * 0.2, R * 0.34, look, blink, 'tough');
+      _mouth(g, 0, cy + R * 0.42, R * 0.5, 'smirk');
+      // 底下的紙袋（夜市感）
+      g.fillStyle = '#e8d5b5';
+      g.beginPath(); g.moveTo(-R * 0.72, cy + h * 0.55); g.lineTo(R * 0.72, cy + h * 0.55);
+      g.lineTo(R * 0.6, cy + h * 1.12); g.lineTo(-R * 0.6, cy + h * 1.12); g.closePath(); g.fill(); _ol(g, R * 0.1);
+      g.fillStyle = '#d62828'; g.font = 'bold ' + (R * 0.34) + 'px "Noto Serif TC", serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('排', 0, cy + h * 0.85);
+      break;
+    }
     case 'scallion': {
       const cy = -R * 0.95;
       for (const s of [-1, 1]) { g.beginPath(); g.arc(s * R * 1.0, -R * 0.5, R * 0.3, 0, Math.PI * 2); g.fillStyle = '#e2b06f'; g.fill(); _ol(g, R * 0.13); }

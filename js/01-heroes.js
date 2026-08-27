@@ -84,10 +84,22 @@ const HEROES = {
     ],
     aiSpecial: 'boomerang', aiSpecialCd: 8,
   },
+  chicken: {
+    name: 'Golden Chicken Cutlet', cn: '金黃雞排', role: 'Area', emoji: '🍗',
+    color: '#f0b429', hp: 150, speed: 2.7, atkDmg: 12, atkRange: 240, atkCd: 0.6,
+    premium: true, priceNTD: 33,
+    abilities: [
+      { key: 'Q', name: 'Pepper Wave', cd: 6, cast: castPepperWave, icon: '椒' },
+      { key: 'E', name: 'Crispy Coat', cd: 10, cast: castCrispyCoat, icon: '酥' },
+      { key: 'R', name: 'Cutlet Feast', cd: 13, cast: castCutletFeast, icon: '排' },
+    ],
+    aiSpecial: 'cone', aiSpecialCd: 6,
+  },
 };
 
-const HERO_ORDER = ['scallion','squid','tofu','bubble','sausage','hawthorn','oyster','ribs'];
+const HERO_ORDER = ['scallion','squid','tofu','bubble','sausage','hawthorn','oyster','ribs','chicken'];
 const HERO_LORE = {
+  chicken:  { tCn:'排隊三小時的傳說', tEn:'The Golden Legend', rCn:'範圍', aCn:['椒鹽衝擊波','金黃酥皮','雞排放題'] },
   scallion: { tCn:'鐵板上的老大哥', tEn:'The Layered Guardian', rCn:'坦克', aCn:['五香','油爆','麵皮裹'] },
   squid:    { tCn:'海風來的長手',     tEn:'The Tide-Reach',      rCn:'遠程', aCn:['觸手鞭','纏絲','潑墨'] },
   tofu:     { tCn:'越臭越驕傲',         tEn:'The Glorious Reek',   rCn:'控場', aCn:['酥脈衝','脆殼盾','臭氣彈'] },

@@ -93,16 +93,12 @@
     .select-sub { font-size: 11px; margin-bottom: 6px; }
     .heroes-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; width: 96vw; max-width: none; }
     .hero-card { padding: 4px 8px; }
-    .hero-card .hero-title, .hero-card .hero-abilities, .hero-card .hero-stats, .hero-card .hero-role { display: none; }
-    .hero-card .hero-emoji { margin: 0; line-height: 0; height: 36px; display: flex; justify-content: center; }
-    .hero-card .hero-emoji canvas { width: 34px; height: 34px; }
-    .hero-card .hero-name { font-size: 9px; margin: 2px 0 0; }
-    .hero-card .hero-cn { font-size: 13px; margin: 0 0 2px; }
-    .hero-bars { margin: 2px 0 2px; }
-    .hero-bars .hb { margin: 1px 0; }
-    .hero-bars span { height: 5px; }
-    .hero-bars i { width: 22px; font-size: 9px; }
-    .hero-bars em { display: none; }
+    .hero-card .hero-emoji { margin: 0; line-height: 0; height: 40px; display: flex; justify-content: center; }
+    .hero-card .hero-emoji canvas { width: 38px; height: 38px; }
+    .hero-card.hc-simple .hero-cn { font-size: 13px; margin: 1px 0 0; }
+    .hero-card.hc-simple .hero-name { display: none; }
+    .hero-lock { top: 3px; left: 3px; font-size: 9px; padding: 1px 6px; }
+    .heroes-grid { grid-template-columns: repeat(5, 1fr); }
     #select-screen .btn { padding: 7px 24px; font-size: 14px; margin-top: 4px; }
     #select-screen { padding: 6px; }
 

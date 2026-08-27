@@ -235,3 +235,84 @@ body.touch #pause-btn { top: calc(8px + env(safe-area-inset-top, 0px)); right: c
 /* ===== 選角/模式按鈕同一排 ===== */
 .sel-actions { display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 6px; }
 .sel-actions .btn { margin: 0; }
+
+
+/* ===== 固定的夜市風背景（不再透出上一場戰場）===== */
+#ach-screen, #shop-screen, #howto-screen, #room-screen,
+#select-screen, #mode-screen, #hero-detail-screen {
+  background:
+    radial-gradient(circle at 12% 16%, rgba(214,40,40,0.20), transparent 42%),
+    radial-gradient(circle at 88% 12%, rgba(244,169,60,0.16), transparent 40%),
+    radial-gradient(circle at 50% 115%, rgba(120,50,150,0.30), transparent 62%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.014) 0 2px, transparent 2px 16px),
+    linear-gradient(180deg, #1e1130, #140a22 55%, #180d27);
+}
+
+/* ===== 精簡英雄卡 ===== */
+.hero-card.hc-simple { text-align: center; padding: 14px 8px 12px; cursor: pointer; position: relative; }
+.hero-card.hc-simple .hero-cn { font-size: 17px; margin: 4px 0 1px; }
+.hero-card.hc-simple .hero-name { font-size: 9px; opacity: 0.6; }
+.hero-card.locked { filter: saturate(0.35) brightness(0.75); }
+.hero-lock { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.65); border: 1px solid var(--lantern);
+  color: var(--lantern); font-family: 'Space Mono', monospace; font-size: 11px; padding: 2px 8px; border-radius: 999px; z-index: 2; }
+.hero-lock.owned-tag { border-color: #7ddf6b; color: #7ddf6b; }
+.room-hero.rh-locked { opacity: 0.45; cursor: not-allowed; }
+
+/* ===== 英雄詳情 ===== */
+#hd-back { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px)); z-index: 5; }
+.hd-wrap { display: flex; gap: 34px; align-items: center; justify-content: center; width: min(92vw, 820px); }
+.hd-left { position: relative; text-align: center; flex: 0 0 auto; }
+.hd-halo { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); width: 260px; height: 260px;
+  background: radial-gradient(circle, rgba(244,169,60,0.28), rgba(244,169,60,0.05) 60%, transparent 72%); border-radius: 50%; }
+#hd-art { position: relative; }
+.hd-name b { display: block; font-family: 'Noto Serif TC', serif; font-size: 30px; font-weight: 900; color: #f6e6cf; }
+.hd-name span { font-family: 'Bungee', sans-serif; font-size: 12px; letter-spacing: 3px; color: var(--lantern); }
+.hd-right { flex: 0 1 340px; text-align: left; }
+.hd-title { font-family: 'Noto Serif TC', serif; font-size: 16px; color: var(--lantern); margin-bottom: 8px; }
+.hd-chips { display: flex; gap: 8px; margin-bottom: 10px; }
+.hd-chips span { border: 1px solid rgba(244,169,60,0.5); color: #f6e6cf; font-family: 'Space Mono', monospace;
+  font-size: 11px; padding: 3px 10px; border-radius: 999px; }
+.hd-abilities { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.hd-ab { display: flex; align-items: center; gap: 10px; background: rgba(12,8,16,0.6);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 7px 12px; }
+.hd-key { font-family: 'Bungee', sans-serif; font-size: 11px; color: var(--lantern); border: 1px solid rgba(244,169,60,0.6);
+  border-radius: 6px; padding: 2px 6px; }
+.hd-ic { font-family: 'Noto Serif TC', serif; font-size: 20px; font-weight: 900; color: #f6e6cf; }
+.hd-ab b { display: block; font-family: 'Noto Serif TC', serif; font-size: 14px; color: #f6e6cf; }
+.hd-ab small { font-family: 'Space Mono', monospace; font-size: 10px; opacity: 0.6; }
+.hd-actions { position: absolute; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: calc(20px + env(safe-area-inset-left, 0px)); display: flex; gap: 12px; }
+.hd-buy-btn { background: linear-gradient(160deg, #ffd166, #f0a832); color: #3a2005; }
+
+/* ===== 模擬付款彈窗 ===== */
+#pay-modal { position: fixed; inset: 0; z-index: 500; background: rgba(8,4,14,0.8); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; }
+#pay-modal.hidden { display: none; }
+.pay-box { background: rgba(22,12,36,0.98); border: 2px solid var(--lantern); border-radius: 14px;
+  padding: 18px 22px; width: min(380px, 92vw); max-height: 92vh; overflow-y: auto;
+  font-family: 'Noto Serif TC', serif; color: #f6e6cf; }
+.pay-warn { background: rgba(214,40,40,0.18); border: 1px dashed rgba(255,120,100,0.6); border-radius: 8px;
+  font-size: 12px; line-height: 1.6; padding: 8px 10px; margin-bottom: 10px; color: #ffc9b8; }
+.pay-title { font-size: 18px; font-weight: 900; margin-bottom: 10px; }
+.pay-title span { color: var(--lantern); font-family: 'Space Mono', monospace; }
+.pay-box label { display: block; font-size: 12px; margin: 8px 0 2px; opacity: 0.85; }
+.pay-box input { width: 100%; box-sizing: border-box; background: rgba(12,8,16,0.8); border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 8px; color: #f6e6cf; font-family: 'Space Mono', monospace; font-size: 14px; padding: 7px 10px; }
+.pay-box input:focus { outline: none; border-color: var(--lantern); }
+.pay-row { display: flex; gap: 10px; }
+.pay-row label { flex: 1; }
+.pay-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+#pay-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 詳情頁手機直式/矮螢幕 */
+@media (max-height: 540px) {
+  .hd-wrap { gap: 18px; }
+  #hd-art { width: 170px; height: 170px; }
+  .hd-halo { width: 160px; height: 160px; }
+  .hd-name b { font-size: 20px; }
+  .hd-ab { padding: 4px 10px; }
+  .hd-ab b { font-size: 12px; }
+  .hd-abilities { gap: 5px; }
+  .hd-title { font-size: 13px; margin-bottom: 4px; }
+  .hd-actions { bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .hd-actions .btn { padding: 7px 20px; font-size: 14px; }
+}

@@ -200,6 +200,35 @@ function castTenTreasure() {
   player.shield = 7; player.shieldMul = 0.7;
 }
 
+// Golden Chicken Cutlet（範圍型：寬幅酥浪，參考波可式的貫穿聲波）
+function castPepperWave() {
+  const ang = angleTo(player, mouse);
+  projectiles.push({
+    x: player.x + Math.cos(ang) * (player.r + 6), y: player.y + Math.sin(ang) * (player.r + 6),
+    vx: Math.cos(ang) * 8, vy: Math.sin(ang) * 8,
+    r: 26, dmg: 30, life: 1.1, color: '#f0b429', team: 'player', pierce: true, style: 'wave',
+    onHit: (proj, target) => { target.slow = Math.max(target.slow || 0, 1.5); target.slowMul = 0.65; },
+  });
+  spawnParticles(player.x + Math.cos(ang) * 30, player.y + Math.sin(ang) * 30, 16, '#ffd166', { speed: 4, life: 0.5, size: 4 });
+}
+function castCrispyCoat() {
+  player.shield = 3; player.shieldMul = 0.55;
+  player.speedBuff = 1.5; player.speedBuffMul = 1.25;
+  spawnParticles(player.x, player.y, 20, '#f0b429', { speed: 4, life: 0.7, size: 4 });
+  spawnRing(player.x, player.y, '#ffd166', 46);
+}
+function castCutletFeast() {
+  for (let k = 0; k < 8; k++) {
+    const a = (Math.PI * 2 * k) / 8;
+    projectiles.push({ x: player.x, y: player.y, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7,
+      r: 16, dmg: 22, life: 0.9, color: '#f0b429', team: 'player', pierce: true, style: 'wave' });
+  }
+  player.hp = Math.min(player.maxHp, player.hp + 30);
+  dmgText(player.x, player.y - 30, '+30', '#ffe27a');
+  spawnRing(player.x, player.y, '#ffd166', 70);
+  updateHud();
+}
+
 // Predict where to aim so a shot of `projSpeed` intercepts a moving target.
 // skill 0 = aim at current pos, 1 = full lead; adds a little spread.
 function leadAim(e, target, projSpeed, skill = 0.7) {

@@ -39,7 +39,7 @@
       <div class="lantern" style="top: 14%; left: 85%; animation-delay: -1s;"></div>
       <div class="lantern" style="top: 70%; left: 8%; animation-delay: -2s;"></div>
       <div class="lantern" style="top: 78%; left: 88%; animation-delay: -1.5s;"></div>
-      <div class="lantern" style="top: 5%; left: 50%; animation-delay: -0.5s;"></div>
+      <div class="lantern" style="top: 6%; left: 26%; animation-delay: -0.5s;"></div>
     </div>
     <h1 class="title">夜市<span class="accent">擂台</span></h1>
     <div class="subtitle">Night Market Arena</div>
@@ -50,6 +50,7 @@
       <button class="btn-mini" id="tutorial-btn">教學<span>Tutorial</span></button>
       <button class="btn-mini" id="ach-btn">成就<span>Awards</span></button>
       <button class="btn-mini" id="shop-btn">攤位<span>Stall</span></button>
+      <button class="btn-mini" id="heroes-btn">角色介紹<span>Heroes</span></button>
       <button class="btn-mini hidden" id="install-btn">📲 安裝<span>Install App</span></button>
     </div>
     <div class="name-row"><input id="player-name-input" maxlength="16" placeholder="你的名字（可不填）· Your name" autocomplete="off"></div>
@@ -64,6 +65,47 @@
     <div class="sel-actions">
       <button class="btn btn-secondary" id="select-home-btn">← 回首頁 Home</button>
       <button class="btn hidden" id="confirm-hero-btn">下一步 · Next</button>
+    </div>
+  </div>
+
+  <!-- 英雄詳情（荒野亂鬥式：左上返回、中間立繪、右側資料、左下確認） -->
+  <div id="hero-detail-screen" class="screen hidden">
+    <button class="btn-mini" id="hd-back">← 返回<span>Back</span></button>
+    <div class="hd-wrap">
+      <div class="hd-left">
+        <div class="hd-halo"></div>
+        <canvas id="hd-art" width="300" height="300"></canvas>
+        <div class="hd-name"><b id="hd-cn"></b><span id="hd-en"></span></div>
+      </div>
+      <div class="hd-right">
+        <div class="hd-title" id="hd-title"></div>
+        <div class="hd-chips"><span id="hd-role"></span><span id="hd-range"></span></div>
+        <div class="hero-bars" id="hd-bars"></div>
+        <div class="hd-abilities" id="hd-abilities"></div>
+      </div>
+    </div>
+    <div class="hd-actions">
+      <button class="btn" id="hd-confirm">確認出戰 · Select</button>
+      <button class="btn hd-buy-btn hidden" id="hd-buy">🍗 購買 NT$33</button>
+    </div>
+  </div>
+
+  <!-- 模擬付款彈窗 -->
+  <div id="pay-modal" class="hidden">
+    <div class="pay-box">
+      <div class="pay-warn">⚠️ 模擬付款（課程作業展示）— 不會真的收費，<b>請勿輸入真實卡號</b>，每一欄隨便打個「a」就可以</div>
+      <div class="pay-title">解鎖 金黃雞排 <span>NT$33</span></div>
+      <label>信用卡卡號<input id="pay-card" autocomplete="off" inputmode="text" placeholder="模擬用，隨便填"></label>
+      <div class="pay-row">
+        <label>到期年月<input id="pay-exp" autocomplete="off" placeholder="模擬用"></label>
+        <label>CVC<input id="pay-cvc" autocomplete="off" placeholder="模擬用"></label>
+      </div>
+      <label>持卡人姓名<input id="pay-name" autocomplete="off" placeholder="模擬用"></label>
+      <label>電子郵件<input id="pay-email" autocomplete="off" placeholder="模擬用"></label>
+      <div class="pay-actions">
+        <button class="btn btn-secondary" id="pay-cancel">取消</button>
+        <button class="btn" id="pay-submit" disabled>完成購買</button>
+      </div>
     </div>
   </div>
 
@@ -208,29 +250,29 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
 </script>
-<script src="js/00-abilities.js?v24"></script>
-<script src="js/01-heroes.js?v24"></script>
-<script src="js/02-modes.js?v24"></script>
-<script src="js/03-state.js?v24"></script>
-<script src="js/04-input.js?v24"></script>
-<script src="js/05-util.js?v24"></script>
-<script src="js/06-sound.js?v24"></script>
-<script src="js/07-enemy-ai.js?v24"></script>
-<script src="js/08-ui-select.js?v24"></script>
-<script src="js/09-match.js?v24"></script>
-<script src="js/10-update.js?v24"></script>
-<script src="js/11-map.js?v24"></script>
-<script src="js/12-render.js?v24"></script>
-<script src="js/13-art.js?v24"></script>
-<script src="js/14-boss.js?v24"></script>
-<script src="js/15-draw.js?v24"></script>
-<script src="js/16-save.js?v24"></script>
-<script src="js/17-progress.js?v24"></script>
-<script src="js/18-tutorial.js?v24"></script>
-<script src="js/19-ui-meta.js?v24"></script>
-<script src="js/20-main.js?v24"></script>
-<script src="js/21-online.js?v24"></script>
-<script src="js/22-net.js?v24"></script>
+<script src="js/00-abilities.js?v25"></script>
+<script src="js/01-heroes.js?v25"></script>
+<script src="js/02-modes.js?v25"></script>
+<script src="js/03-state.js?v25"></script>
+<script src="js/04-input.js?v25"></script>
+<script src="js/05-util.js?v25"></script>
+<script src="js/06-sound.js?v25"></script>
+<script src="js/07-enemy-ai.js?v25"></script>
+<script src="js/08-ui-select.js?v25"></script>
+<script src="js/09-match.js?v25"></script>
+<script src="js/10-update.js?v25"></script>
+<script src="js/11-map.js?v25"></script>
+<script src="js/12-render.js?v25"></script>
+<script src="js/13-art.js?v25"></script>
+<script src="js/14-boss.js?v25"></script>
+<script src="js/15-draw.js?v25"></script>
+<script src="js/16-save.js?v25"></script>
+<script src="js/17-progress.js?v25"></script>
+<script src="js/18-tutorial.js?v25"></script>
+<script src="js/19-ui-meta.js?v25"></script>
+<script src="js/20-main.js?v25"></script>
+<script src="js/21-online.js?v25"></script>
+<script src="js/22-net.js?v25"></script>
 
 
 

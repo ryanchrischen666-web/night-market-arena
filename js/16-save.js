@@ -13,6 +13,7 @@ const Save = (() => {
     best: {},       // "hero|mode" -> 最佳秒數
     ach: {},        // achId  -> 解鎖時間戳
     owned: [],      // 已購買的造型 id
+    heroesOwned: [],// 已解鎖的付費英雄 id
     equipped: { trail: null, title: null },
     seenHowTo: false, tutorialDone: false,
   });

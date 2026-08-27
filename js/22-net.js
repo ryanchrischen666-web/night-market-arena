@@ -257,11 +257,14 @@ const NetMatch = (() => {
     });
     // 迷你英雄選單
     const pick = document.getElementById('room-picker');
-    pick.innerHTML = HERO_ORDER.map(id =>
-      `<button class="room-hero" data-id="${id}"><span>${HEROES[id].emoji}</span>${HEROES[id].cn}</button>`).join('');
+    pick.innerHTML = HERO_ORDER.map(id => {
+      const locked = HEROES[id].premium && !(Save.d.heroesOwned || []).includes(id);
+      return `<button class="room-hero${locked ? ' rh-locked' : ''}" data-id="${id}" ${locked ? 'disabled' : ''}>` +
+        `<span>${locked ? '🔒' : HEROES[id].emoji}</span>${HEROES[id].cn}</button>`;
+    }).join('');
     pick.addEventListener('click', (ev) => {
       const b = ev.target.closest('.room-hero');
-      if (!b) return;
+      if (!b || b.disabled) return;
       console.log('[NET] 點選角', b.dataset.id);
       Sound.ui(); me.hero = b.dataset.id; track(); armWatchdog(); renderLobby();
     });
@@ -566,6 +569,13 @@ const NetMatch = (() => {
       const slife = quick ? 0.12 : heavy ? 0.2 : 0.16;
       zones.push({ type: 'swing', x: e.x, y: e.y, ang, range, color: e.color, span, half, heavy, life: slife, maxLife: slife });
       Sound.swing(e.id);
+    } else if (e.id === 'chicken') {
+      const mx = e.x + Math.cos(ang) * (e.r + 6), my2 = e.y + Math.sin(ang) * (e.r + 6);
+      projectiles.push({ x: mx, y: my2, vx: Math.cos(ang) * 8, vy: Math.sin(ang) * 8, r: 18,
+        dmg: h.atkDmg * _mul, life: 1.0, color: '#f0b429', team: hostile ? 'enemy' : 'fx', style: 'wave', pierce: true, srcU: pl.u,
+        onHitP: (hostile && _burn) ? ((proj, pv) => { pv.burnT = 3; pv.burnDmgP = 6; }) : null });
+      spawnParticles(mx, my2, 8, '#ffd166', { speed: 3, life: 0.3, size: 3 });
+      Sound.shot(e.id);
     } else {
       const st = ({ squid: 'ink', bubble: 'pearl' })[e.id] || 'bolt';
       const mx = e.x + Math.cos(ang) * (e.r + 6), my2 = e.y + Math.sin(ang) * (e.r + 6);
@@ -649,6 +659,16 @@ const NetMatch = (() => {
         () => { fx(e.x, e.y, 24, '#ffe27a', { speed: 4, life: 0.8, size: 4 }); dmgText(e.x, e.y - 30, '+50', '#ffe27a'); },
         () => { if (hostile) P({ x: e.x, y: e.y, vx: 0, vy: 0, r: 9, dmg: 32, life: 3, color: '#f4a261', homing: me0, speed: 5 }); },
         () => { zones.push({ type: 'slick', x: e.x, y: e.y, r: 110, life: 6, maxLife: 6, hostile }); },
+      ],
+      chicken: [
+        () => P({ x: e.x + Math.cos(ang) * (e.r + 6), y: e.y + Math.sin(ang) * (e.r + 6),
+          vx: Math.cos(ang) * 8, vy: Math.sin(ang) * 8, r: 26, dmg: 30, life: 1.1,
+          color: '#f0b429', pierce: true, style: 'wave', srcU: plo.u, slowOnHit: 1.5, slowMulOnHit: 0.65 }),
+        () => { e.shield = 3; fx(e.x, e.y, 20, '#f0b429', { speed: 4, life: 0.7, size: 4 }); spawnRing(e.x, e.y, '#ffd166', 46); },
+        () => { for (let k = 0; k < 8; k++) { const a = (Math.PI * 2 * k) / 8;
+            P({ x: e.x, y: e.y, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7, r: 16, dmg: 22, life: 0.9,
+              color: '#f0b429', pierce: true, style: 'wave', srcU: plo.u }); }
+          dmgText(e.x, e.y - 30, '+30', '#ffe27a'); spawnRing(e.x, e.y, '#ffd166', 70); },
       ],
       ribs: [
         () => { const sd = Math.min(Math.hypot(mx - e.x, my - e.y), 200);

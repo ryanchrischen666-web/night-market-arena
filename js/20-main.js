@@ -77,7 +77,8 @@ document.getElementById('start-btn').addEventListener('click', () => {
   document.getElementById('title-screen').classList.add('hidden');
   document.getElementById('select-screen').classList.remove('hidden');
   resetHeroPick();
-  renderHeroCards();
+  renderHeroCards('select');
+  setSelectHeading('選擇英雄 \u00b7 Choose Your Hero');
 });
 document.getElementById('confirm-hero-btn').addEventListener('click', () => {
   if (!selectedHero) return;
@@ -318,9 +319,17 @@ window.PlayerName = PlayerName;   // top-level const 不會自動掛上 window
   on('shop-btn',     () => { Sound.ui(); UI.openScreen('shop-screen');  UI.renderShop(); });
   on('tutorial-btn', () => { Sound.init(); Sound.resume(); Sound.ui(); Tutorial.start(); });
   on('pause-btn',    () => setPaused(true));
+  on('heroes-btn',   () => {
+    Sound.init(); Sound.resume(); Sound.ui();
+    document.getElementById('title-screen').classList.add('hidden');
+    document.getElementById('select-screen').classList.remove('hidden');
+    renderHeroCards('browse');
+    setSelectHeading('角色介紹 \u00b7 Heroes');
+  });
   on('mob-menu-btn', () => { Sound.ui(); document.getElementById('audio-controls').classList.toggle('open'); });
   on('select-home-btn', () => {
     if (window.NetMatch && NetMatch.active) NetMatch.leaveRoom();
+    document.getElementById('hero-detail-screen').classList.add('hidden');
     Sound.uiBack(); resetHeroPick();
     document.getElementById('select-screen').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');

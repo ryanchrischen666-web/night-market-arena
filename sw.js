@@ -1,5 +1,5 @@
 // 夜市擂台 Service Worker：連線時走網路（永遠拿最新版），斷線時退回快取（單機照玩）
-const CACHE = 'nma-v24';
+const CACHE = 'nma-v25';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html', './manifest.webmanifest'])).then(() => self.skipWaiting()));
 });
