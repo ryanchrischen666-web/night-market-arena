@@ -54,7 +54,7 @@ function drawRings() {
 // 雞排放題光束：外層金暈 + 內芯白光，末端喇叭口，隨時間微微脈動
 function drawFeastBeam(x, y, ang, seed) {
   const t = performance.now() / 1000;
-  const LEN = 360, pulse = 1 + Math.sin(t * 18 + (seed || 0)) * 0.12;
+  const LEN = beamReach(x, y, ang, 360), pulse = 1 + Math.sin(t * 18 + (seed || 0)) * 0.12;
   ctx.save();
   ctx.translate(x, y); ctx.rotate(ang);
   const grad = ctx.createLinearGradient(0, 0, LEN, 0);
@@ -81,6 +81,14 @@ function drawFeastBeam(x, y, ang, seed) {
     const px = ((t * 300 + k * 120 + (seed || 0) * 50) % LEN);
     ctx.fillStyle = 'rgba(255,240,190,' + (0.7 - px / LEN * 0.6) + ')';
     ctx.beginPath(); ctx.arc(px, Math.sin(t * 10 + k * 2) * 12, 4, 0, Math.PI * 2); ctx.fill();
+  }
+  // 撞牆光斑
+  if (LEN < 359) {
+    const fg = ctx.createRadialGradient(LEN, 0, 0, LEN, 0, 30 * pulse);
+    fg.addColorStop(0, 'rgba(255,250,220,0.9)');
+    fg.addColorStop(1, 'rgba(255,209,102,0)');
+    ctx.fillStyle = fg;
+    ctx.beginPath(); ctx.arc(LEN, 0, 30 * pulse, 0, Math.PI * 2); ctx.fill();
   }
   ctx.restore();
 }

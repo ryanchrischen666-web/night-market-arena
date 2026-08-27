@@ -433,8 +433,8 @@ const NetMatch = (() => {
       e._feastTick = (e._feastTick || 0) - dt;
       if (e._feastTick <= 0 && e.hostileNet && me0 && !me0.dead) {
         e._feastTick = 0.2;
-        const LEN = 360, HW = 26;
         const fa = e._feastAng || 0;
+        const LEN = beamReach(e.x, e.y, fa, 360), HW = 26;
         const rx = me0.x - e.x, ry = me0.y - e.y;
         const along = rx * Math.cos(fa) + ry * Math.sin(fa);
         if (along >= 0 && along <= LEN && Math.abs(-Math.sin(fa) * rx + Math.cos(fa) * ry) < HW + me0.r) {

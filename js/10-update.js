@@ -189,7 +189,7 @@ function updatePlayerCore(dt) {
     player.feastTick -= dt;
     if (player.feastTick <= 0 && !_cc) {
       player.feastTick = 0.2;                    // 每 0.2 秒結算一次（DPS 40）
-      const LEN = 360, HW = 26;
+      const LEN = beamReach(player.x, player.y, player.feastAng, 360), HW = 26;
       const fc = Math.cos(player.feastAng), fs = Math.sin(player.feastAng);
       let healed = 0;
       for (const e of enemies) {

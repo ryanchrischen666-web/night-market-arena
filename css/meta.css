@@ -287,7 +287,7 @@ body.touch #pause-btn { top: calc(8px + env(safe-area-inset-top, 0px)); right: c
 .hd-ic { font-family: 'Noto Serif TC', serif; font-size: 20px; font-weight: 900; color: #f6e6cf; }
 .hd-ab b { display: block; font-family: 'Noto Serif TC', serif; font-size: 14px; color: #f6e6cf; }
 .hd-ab small { font-family: 'Space Mono', monospace; font-size: 10px; opacity: 0.6; }
-.hd-actions { position: absolute; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: calc(20px + env(safe-area-inset-left, 0px)); display: flex; gap: 12px; }
+.hd-actions { position: absolute; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); display: flex; gap: 12px; }
 .hd-buy-btn { background: linear-gradient(160deg, #ffd166, #f0a832); color: #3a2005; }
 
 /* ===== 模擬付款彈窗 ===== */

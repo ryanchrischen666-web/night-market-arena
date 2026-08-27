@@ -86,6 +86,31 @@ function applyStunP(unit, dur) { return applyCC(unit, 'stunT', dur); }
 function applyFreezeP(unit, dur) { return applyCC(unit, 'frozenT', dur); }
 function applyFreeze(unit, dur) { return applyCC(unit, 'frozen', dur); }
 
+// 光束射程：從 (x,y) 沿 ang 方向最多 maxLen，撞到第一面攤位牆就截斷
+function beamReach(x, y, ang, maxLen) {
+  let best = maxLen;
+  if (!currentMap) return best;
+  const dx = Math.cos(ang), dy = Math.sin(ang);
+  for (const b of currentMap.blocks) {
+    let tmin = 0, tmax = best;
+    let okBlock = true;
+    if (Math.abs(dx) < 1e-8) { if (x < b.x || x > b.x + b.w) okBlock = false; }
+    else {
+      let t1 = (b.x - x) / dx, t2 = (b.x + b.w - x) / dx;
+      if (t1 > t2) { const tt = t1; t1 = t2; t2 = tt; }
+      tmin = Math.max(tmin, t1); tmax = Math.min(tmax, t2);
+    }
+    if (okBlock && Math.abs(dy) < 1e-8) { if (y < b.y || y > b.y + b.h) okBlock = false; }
+    else if (okBlock) {
+      let t1 = (b.y - y) / dy, t2 = (b.y + b.h - y) / dy;
+      if (t1 > t2) { const tt = t1; t1 = t2; t2 = tt; }
+      tmin = Math.max(tmin, t1); tmax = Math.min(tmax, t2);
+    }
+    if (okBlock && tmin <= tmax && tmin >= 0 && tmin < best) best = tmin;
+  }
+  return best;
+}
+
 function damageEnemy(enemy, dmg, opts = {}) {
   if (enemy.remote) return;   // 連線對手：第一階段先不做傷害同步
   if (enemy.dead) return;
