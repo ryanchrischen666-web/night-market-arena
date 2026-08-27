@@ -185,6 +185,21 @@ const NetMatch = (() => {
       Sound.ui(); me.team = t; track(); armWatchdog(); renderLobby();
     }));
     document.getElementById('room-leave-btn').addEventListener('click', () => { Sound.uiBack(); leaveRoom(); });
+    const copyBtn = document.getElementById('room-copy-btn');
+    copyBtn.addEventListener('click', async () => {
+      Sound.ui();
+      const link = location.origin + location.pathname + '?room=' + code;
+      let ok = false;
+      try { await navigator.clipboard.writeText(link); ok = true; } catch (e) {
+        try {   // 舊瀏覽器備援
+          const ta = document.createElement('textarea');
+          ta.value = link; document.body.appendChild(ta); ta.select();
+          ok = document.execCommand('copy'); ta.remove();
+        } catch (e2) {}
+      }
+      copyBtn.textContent = ok ? '✅ 已複製！傳給朋友吧' : link;   // 複製失敗就直接顯示連結
+      setTimeout(() => { copyBtn.textContent = '📋 複製邀請連結'; }, 2600);
+    });
     document.getElementById('room-ready-btn').addEventListener('click', () => {
       if (me.team == null || !me.hero) { note('先選隊伍和英雄'); return; }
       console.log('[NET] 準備切換');
@@ -610,8 +625,10 @@ const NetMatch = (() => {
     }
   });
 
+  function refreshName() { track(); if (lobbyOpen) renderLobby(); }
+
   return {
-    createRoom, joinRoom, leaveRoom,
+    createRoom, joinRoom, leaveRoom, refreshName,
     sendAttack, sendCast, sendProp, sendDead, onLocalDeath,
     myDamageDealt, resetPeerDamage,
     _tickRemote,

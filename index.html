@@ -61,8 +61,10 @@
     <div class="select-title" id="select-title">選擇英雄 · Choose Your Hero</div>
     <div class="select-sub">挑一道菜 · Pick Your Flavor</div>
     <div class="heroes-grid" id="heroes-grid"></div>
-    <button class="btn hidden" id="confirm-hero-btn">下一步 · Next</button>
-    <button class="btn btn-secondary" id="select-home-btn">← 回首頁 Home</button>
+    <div class="sel-actions">
+      <button class="btn btn-secondary" id="select-home-btn">← 回首頁 Home</button>
+      <button class="btn hidden" id="confirm-hero-btn">下一步 · Next</button>
+    </div>
   </div>
 
   <!-- Mode select -->
@@ -96,8 +98,10 @@
       </div>
     </div>
     <div class="vs-preview" id="vs-preview"></div>
-    <button class="btn hidden" id="begin-btn">開打！· Begin Battle</button>
-    <button class="btn btn-secondary" id="back-to-hero-btn">← 換英雄 Change Hero</button>
+    <div class="sel-actions">
+      <button class="btn btn-secondary" id="back-to-hero-btn">← 換英雄 Change Hero</button>
+      <button class="btn hidden" id="begin-btn">開打！· Begin Battle</button>
+    </div>
   </div>
 
   <!-- HUD -->
@@ -157,6 +161,7 @@
     <div class="room-actions">
       <button class="btn" id="room-ready-btn">準備 · Ready</button>
       <button class="btn hidden" id="room-start-btn">開始遊戲 · Start</button>
+      <button class="btn btn-secondary" id="room-copy-btn">📋 複製邀請連結</button>
       <button class="btn btn-secondary" id="room-leave-btn">離開房間 · Leave</button>
     </div>
   </div>
@@ -203,29 +208,29 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
 </script>
-<script src="js/00-abilities.js?v21"></script>
-<script src="js/01-heroes.js?v21"></script>
-<script src="js/02-modes.js?v21"></script>
-<script src="js/03-state.js?v21"></script>
-<script src="js/04-input.js?v21"></script>
-<script src="js/05-util.js?v21"></script>
-<script src="js/06-sound.js?v21"></script>
-<script src="js/07-enemy-ai.js?v21"></script>
-<script src="js/08-ui-select.js?v21"></script>
-<script src="js/09-match.js?v21"></script>
-<script src="js/10-update.js?v21"></script>
-<script src="js/11-map.js?v21"></script>
-<script src="js/12-render.js?v21"></script>
-<script src="js/13-art.js?v21"></script>
-<script src="js/14-boss.js?v21"></script>
-<script src="js/15-draw.js?v21"></script>
-<script src="js/16-save.js?v21"></script>
-<script src="js/17-progress.js?v21"></script>
-<script src="js/18-tutorial.js?v21"></script>
-<script src="js/19-ui-meta.js?v21"></script>
-<script src="js/20-main.js?v21"></script>
-<script src="js/21-online.js?v21"></script>
-<script src="js/22-net.js?v21"></script>
+<script src="js/00-abilities.js?v22"></script>
+<script src="js/01-heroes.js?v22"></script>
+<script src="js/02-modes.js?v22"></script>
+<script src="js/03-state.js?v22"></script>
+<script src="js/04-input.js?v22"></script>
+<script src="js/05-util.js?v22"></script>
+<script src="js/06-sound.js?v22"></script>
+<script src="js/07-enemy-ai.js?v22"></script>
+<script src="js/08-ui-select.js?v22"></script>
+<script src="js/09-match.js?v22"></script>
+<script src="js/10-update.js?v22"></script>
+<script src="js/11-map.js?v22"></script>
+<script src="js/12-render.js?v22"></script>
+<script src="js/13-art.js?v22"></script>
+<script src="js/14-boss.js?v22"></script>
+<script src="js/15-draw.js?v22"></script>
+<script src="js/16-save.js?v22"></script>
+<script src="js/17-progress.js?v22"></script>
+<script src="js/18-tutorial.js?v22"></script>
+<script src="js/19-ui-meta.js?v22"></script>
+<script src="js/20-main.js?v22"></script>
+<script src="js/21-online.js?v22"></script>
+<script src="js/22-net.js?v22"></script>
 
 
 

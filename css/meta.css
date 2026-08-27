@@ -150,7 +150,7 @@ body.touch .title-subbtns { gap: 7px; }
 .pause-hint { font-size: 11px; opacity: .7; margin-top: 12px; letter-spacing: .5px; }
 .pause-hint b { color: var(--lantern-glow); }
 .pause-box .btn { margin-top: 18px; padding: 12px 30px; font-size: 15px; display: block; width: 100%; }
-body.touch #pause-btn { top: 14px; right: 62px; }
+body.touch #pause-btn { top: calc(8px + env(safe-area-inset-top, 0px)); right: calc(58px + env(safe-area-inset-right, 0px)); width: 38px; height: 34px; }
 
 
 /* ===== 房間大廳 ===== */
@@ -230,3 +230,8 @@ body.touch #pause-btn { top: 14px; right: 62px; }
   color: #f6e6cf; font-family: 'Noto Serif TC', serif; font-size: 14px; line-height: 1.7;
   padding: 14px 20px; z-index: 400; max-width: 320px; text-align: center;
   box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
+
+
+/* ===== 選角/模式按鈕同一排 ===== */
+.sel-actions { display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 6px; }
+.sel-actions .btn { margin: 0; }

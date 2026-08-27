@@ -16,11 +16,13 @@
   .tbtn-atk { display: none; }   /* 右搖桿取代攻擊鈕 */
   .tbtn-ab { width: 54px; height: 54px; font-size: 19px; color: #2a1640; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 0 #9a6a1e, 0 6px 16px rgba(0,0,0,0.45); }
   .tbtn-ab.cooling { background: #3a3348; color: rgba(245,230,200,0.4); box-shadow: 0 3px 0 #221d2e; }
-  /* 技能鈕排在下緣中間偏右，離瞄準搖桿遠一點不誤觸 */
-  #touch-buttons { right: auto; left: 50%; margin-left: -100px; bottom: 14px; width: 200px; height: 70px; }
-  #tb-q { left: 0; bottom: 0; }
-  #tb-e { left: 66px; bottom: 0; }
-  #tb-r { left: 132px; bottom: 0; }
+  /* 技能鈕：右下角 1/4 圓弧扇形（拇指自然擺放的位置） */
+  #touch-buttons { left: auto; margin-left: 0; width: 200px; height: 200px;
+    right: calc(4px + env(safe-area-inset-right, 0px));
+    bottom: calc(4px + env(safe-area-inset-bottom, 0px)); }
+  #tb-q { right: 128px; bottom: 14px; }
+  #tb-e { right: 96px; bottom: 88px; }
+  #tb-r { right: 24px; bottom: 128px; }
   .tb-ic { pointer-events: none; }
   body.touch .controls-hint { display: none; }
   /* ===== Rotate-to-landscape hint ===== */
@@ -125,6 +127,7 @@
     #player-name-input { padding: 5px 12px; font-size: 13px; width: 200px; }
     .meta-bar { transform: scale(0.8); margin: -2px 0 0; }
     .lantern { transform: scale(0.7); }
+    .lantern:nth-child(5) { display: none; }   /* 正中上方那顆會壓到「夜市」 */
   }
 
   /* ===== 瀏海與圓角安全區：角落按鈕整顆都要看得到 ===== */
@@ -144,4 +147,4 @@
     left: calc(10px + env(safe-area-inset-left, 0px));
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   }
-  body.touch #touch-buttons { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+

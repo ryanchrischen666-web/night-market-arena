@@ -36,6 +36,7 @@ const Online = (() => {
   function setName(n) {
     try { localStorage.setItem(NAME_KEY, n); } catch (e) {}
     if (me) { me.name = n; push(); }
+    if (window.NetMatch && NetMatch.active && NetMatch.refreshName) NetMatch.refreshName();
   }
 
   const enabled = () => !!(ONLINE_CFG.url && ONLINE_CFG.anonKey);
@@ -63,7 +64,15 @@ const Online = (() => {
         render();
       })
       .subscribe(async (s) => {
-        if (s === 'SUBSCRIBED') { status = 'online'; await push(); render(); }
+        if (s === 'SUBSCRIBED') {
+          status = 'online'; await push(); render();
+          // ?room=1234 邀請連結：連上線就自動進房
+          if (!window.__roomLinkUsed) {
+            window.__roomLinkUsed = true;
+            const m = location.search.match(/[?&]room=(\d{4})/);
+            if (m && window.NetMatch && !NetMatch.active) setTimeout(() => NetMatch.joinRoom(m[1]), 300);
+          }
+        }
         else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') { status = 'error'; render(); }
       });
   }
@@ -116,7 +125,7 @@ const Online = (() => {
     if (!p) {
       p = document.createElement('div');
       p.id = 'online-panel';
-      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v21</span></h4>'
+      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v22</span></h4>'
                   + '<ul id="online-list"></ul><div class="om"></div>'
                   + '<div style="display:flex;gap:6px"><button id="online-mkroom-btn">開房間</button>'
                   + '<button id="online-joroom-btn">加入房間</button></div>'
@@ -197,3 +206,5 @@ const Online = (() => {
     get myName() { return me ? me.name : myName(); },
     get peers() { return peers; }, get status() { return status; }, enabled };
 })();
+
+window.Online = Online;   // top-level const 不會自動掛上 window（第三次踩這坑了）
