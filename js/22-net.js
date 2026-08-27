@@ -76,6 +76,7 @@ const NetMatch = (() => {
         b.push({ t: performance.now(), x: payload.x, y: payload.y, f: payload.f, d: payload.d });
         if (b.length > 40) b.shift();
         if (payload.h != null) hps[payload.u] = payload.h;
+        if (payload.fa != null) { const fe = enemies.find(x => x.remote && x.netId === payload.u); if (fe) fe._feastAng = payload.fa; }
         if (payload.df) dmgFromPeers[payload.u] = payload.df;
       })
       .on('broadcast', { event: 'atk' }, ({ payload }) => replayAttack(payload))
@@ -427,6 +428,20 @@ const NetMatch = (() => {
       }
       if (e._netDash.t <= 0) e._netDash = null;
     }
+    if (e._feastT > 0) {
+      e._feastT -= dt;
+      e._feastTick = (e._feastTick || 0) - dt;
+      if (e._feastTick <= 0 && e.hostileNet && me0 && !me0.dead) {
+        e._feastTick = 0.2;
+        const LEN = 360, HW = 26;
+        const fa = e._feastAng || 0;
+        const rx = me0.x - e.x, ry = me0.y - e.y;
+        const along = rx * Math.cos(fa) + ry * Math.sin(fa);
+        if (along >= 0 && along <= LEN && Math.abs(-Math.sin(fa) * rx + Math.cos(fa) * ry) < HW + me0.r) {
+          player = me0; damagePlayer(8, e.netId); player = players[0];
+        }
+      }
+    }
     if (e._netLeap) {
       e._netLeap.t -= dt;
       if (e._netLeap.t <= 0) {
@@ -549,13 +564,6 @@ const NetMatch = (() => {
     const hostile = e.hostileNet;
     const ang = pl.a, _mul = pl.m || 1, _burn = !!pl.b;
     const h = HEROES[e.id];
-    if (pl.rw) {   // 雞排放題的持續光波（吸血在施放者本地算）
-      projectiles.push({ x: e.x + Math.cos(ang) * (e.r + 6), y: e.y + Math.sin(ang) * (e.r + 6),
-        vx: Math.cos(ang) * 8.5, vy: Math.sin(ang) * 8.5, r: 16, dmg: 16, life: 1.0,
-        color: '#ffd166', team: hostile ? 'enemy' : 'fx', pierce: true, style: 'wave', srcU: pl.u });
-      Sound.shot('chicken');
-      return;
-    }
     if (h.atkRange < 100) {
       const range = h.atkRange, p = players[0];
       if (hostile && p && !p.dead) {
@@ -672,7 +680,12 @@ const NetMatch = (() => {
           vx: Math.cos(ang) * 8, vy: Math.sin(ang) * 8, r: 26, dmg: 30, life: 1.1,
           color: '#f0b429', pierce: true, style: 'wave', srcU: plo.u, slowOnHit: 1.5, slowMulOnHit: 0.65 }),
         () => { e.shield = 3; fx(e.x, e.y, 20, '#f0b429', { speed: 4, life: 0.7, size: 4 }); spawnRing(e.x, e.y, '#ffd166', 46); },
-        () => { spawnRing(e.x, e.y, '#ffd166', 70); fx(e.x, e.y, 18, '#ffd166', { speed: 4, life: 0.6, size: 4 }); },   // 放題開始（傷害浪逐發送達）
+        () => {
+          if (e._feastT > 0) { e._feastT = 0; return; }   // 對面提前收攤
+          e._feastT = 3; e._feastTick = 0;
+          e._feastAng = Math.atan2(my - e.y, mx - e.x);
+          spawnRing(e.x, e.y, '#ffd166', 70); fx(e.x, e.y, 18, '#ffd166', { speed: 4, life: 0.6, size: 4 });
+        },
       ],
       ribs: [
         () => { const sd = Math.min(Math.hypot(mx - e.x, my - e.y), 200);

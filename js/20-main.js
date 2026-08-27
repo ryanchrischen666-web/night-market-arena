@@ -249,13 +249,16 @@ function initTouch() {
   atk.addEventListener('touchend', (e) => { e.preventDefault(); mouse.down = false; }, { passive: false });
   atk.addEventListener('touchcancel', () => { mouse.down = false; });
   // 技能鍵：輕點＝自動鎖定；按住拖曳＝手動瞄準（跟 ⚔ 攻擊鍵同手感）
+  // 技能鍵：輕點＝自動鎖定；按住拖曳＝手動瞄準。
+  // 雞排放題進行中的 R 鍵特例：拖曳＝即時轉向光束（不重新施放），輕點＝收攤。
   [['tb-q', 0], ['tb-e', 1], ['tb-r', 2]].forEach(([id, i]) => {
     const b = document.getElementById(id);
-    let sid = null, sox = 0, soy = 0, sdx = 0, sdy = 0, smoved = false;
+    let sid = null, sox = 0, soy = 0, sdx = 0, sdy = 0, smoved = false, steering = false;
     b.addEventListener('touchstart', (e) => {
       e.preventDefault();
       const t = e.changedTouches[0];
       sid = t.identifier; sox = t.clientX; soy = t.clientY; smoved = false;
+      steering = (i === 2 && players[0] && players[0].id === 'chicken' && players[0].feastT > 0);
       aimEl.style.left = sox + 'px'; aimEl.style.top = soy + 'px';
       aimKnob.style.left = '46px'; aimKnob.style.top = '46px';
     }, { passive: false });
@@ -269,6 +272,10 @@ function initTouch() {
           aimEl.classList.remove('hidden');
           const cl = Math.min(len, 46);
           aimKnob.style.left = (46 + sdx * cl) + 'px'; aimKnob.style.top = (46 + sdy * cl) + 'px';
+          // 光束轉向：拖到哪、光束掃到哪（放開也維持這個方向）
+          if (steering || (i === 2 && players[0] && players[0].feastT > 0)) {
+            mobileAim.lastDx = sdx; mobileAim.lastDy = sdy; mobileAim.lastT = performance.now() + 3000;
+          }
         }
       }
     }, { passive: false });
@@ -276,8 +283,14 @@ function initTouch() {
       for (const t of e.changedTouches) {
         if (t.identifier !== sid) continue;
         sid = null; aimEl.classList.add('hidden');
+        const p = players[0];
+        if (steering) {
+          if (!smoved) mobileCast(i);   // 光束中輕點 R＝收攤（走 tryCast 的取消路徑）
+          else if (p) { mobileAim.lastT = performance.now(); }   // 拖完：方向已更新，維持
+          steering = false;
+          return;
+        }
         if (smoved) {
-          const p = players[0];
           mobileAim.lastDx = sdx; mobileAim.lastDy = sdy; mobileAim.lastT = performance.now();
           if (p) mobileCast(i, p.x + sdx * 260, p.y + sdy * 260);
         } else mobileCast(i);

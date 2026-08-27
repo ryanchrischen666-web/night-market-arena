@@ -218,8 +218,9 @@ function castCrispyCoat() {
   spawnRing(player.x, player.y, '#ffd166', 46);
 }
 function castCutletFeast() {
-  // 雞排放題：持續 3 秒朝準星連發酥浪，每道浪打中就吸多少血；再按一次 R 提前收攤
+  // 雞排放題：3 秒不間斷金色光束，跟著準星轉向；打多少傷害吸多少血；再按 R 提前收攤
   player.feastT = 3; player.feastTick = 0;
+  player.feastAng = angleTo(player, mouse);
   spawnRing(player.x, player.y, '#ffd166', 70);
   spawnParticles(player.x, player.y, 18, '#ffd166', { speed: 4, life: 0.6, size: 4 });
 }
