@@ -26,6 +26,8 @@ const NetMatch = (() => {
   let roster = [];           // 開打瞬間的名單
   let bufs = {}, hps = {};   // per-id 位置快照 / 最新血量
   let lastSeen = {};         // per-id 最後收到封包的時間（斷線偵測）
+  let peerState = {};        // per-id 大廳即時狀態（廣播比 presence 快很多）
+  let lastMemberCount = 0;
   let sendTimer = null;
 
   const myId = () => Online.id;
@@ -59,6 +61,14 @@ const NetMatch = (() => {
     });
     ch.on('presence', { event: 'sync' }, onPresence)
       .on('presence', { event: 'leave' }, ({ key }) => onLeave(key))
+      .on('broadcast', { event: 'lobby' }, ({ payload }) => {
+        if (payload.u === myId()) return;
+        peerState[payload.u] = { team: payload.team, hero: payload.hero, ready: payload.ready, name: payload.name, host: !!payload.host };
+        if (lobbyOpen) renderLobby();
+      })
+      .on('broadcast', { event: 'knock' }, ({ payload }) => {
+        if (payload.u !== myId()) sendLobby();   // 有人敲門，立刻自我介紹（不等 presence）
+      })
       .on('broadcast', { event: 'start' }, ({ payload }) => beginFromRoster(payload.roster, payload.m))
       .on('broadcast', { event: 'pos' }, ({ payload }) => {
         const b = bufs[payload.u] || (bufs[payload.u] = []);
@@ -80,11 +90,22 @@ const NetMatch = (() => {
         if (s === 'SUBSCRIBED') {
           await track();
           if (iAmHost) openLobby();
-          else setTimeout(() => {
-            if (!members.some(m => m.host)) { note('找不到房間 ' + code + '（房主不在）'); leaveRoom(); }
-            else if (members.length > 6) { note('房間已滿（6 人）'); leaveRoom(); }
-            else openLobby();
-          }, 1200);
+          else {
+            try { ch.send({ type: 'broadcast', event: 'knock', payload: { u: myId() } }); } catch (e) {}
+            let waited = 0;
+            const poll = setInterval(() => {
+              waited += 300;
+              if (!ch) { clearInterval(poll); return; }
+              if (hostSeen()) {
+                clearInterval(poll);
+                if (roomHeadcount() > 6) { note('房間已滿（6 人）'); leaveRoom(); }
+                else openLobby();
+              } else if (waited >= 5000) {
+                clearInterval(poll);
+                note('找不到房間 ' + code + '（房主不在）'); leaveRoom();
+              }
+            }, 300);
+          }
         } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') {
           note('房間連線失敗'); cleanup();
         }
@@ -95,6 +116,7 @@ const NetMatch = (() => {
   async function track(retried) {
     if (!ch) return;
     try {
+      sendLobby();   // 廣播先走（~100ms 到），presence 慢慢追上
       const st = await ch.track({ name: Online.myName || '?', host: iAmHost, team: me.team, hero: me.hero, ready: me.ready });
       console.log('[NET] track →', st, JSON.stringify(me));
       if (st !== 'ok' && !retried) setTimeout(() => track(true), 600);   // 失敗自動重試一次
@@ -102,6 +124,12 @@ const NetMatch = (() => {
       console.log('[NET] track 例外', e);
       if (!retried) setTimeout(() => track(true), 600);
     }
+  }
+
+  function sendLobby() {
+    if (!ch) return;
+    try { ch.send({ type: 'broadcast', event: 'lobby',
+      payload: { u: myId(), team: me.team, hero: me.hero, ready: me.ready, name: Online.myName || '?', host: iAmHost } }); } catch (e) {}
   }
 
   // 同步看門狗：按了選隊/選角後 3 秒，presence 還沒跟上就再推一次
@@ -119,13 +147,25 @@ const NetMatch = (() => {
     }, 3000);
   }
 
+  function hostSeen() {
+    return members.some(m => m.host) || Object.values(peerState).some(p => p.host);
+  }
+  function roomHeadcount() {
+    const ids = new Set(members.map(m => m.id));
+    for (const k in peerState) ids.add(k);
+    ids.add(myId());
+    return ids.size;
+  }
+
   function onPresence() {
     if (!ch) return;
     const st = ch.presenceState();
     members = Object.entries(st).map(([id, metas]) => Object.assign({ id }, metas[0]))
       .sort((a, b) => a.id < b.id ? -1 : 1);
+    if (members.length > lastMemberCount) setTimeout(sendLobby, 250);   // 迎新
+    lastMemberCount = members.length;
     if (lobbyOpen) {
-      if (!iAmHost && !members.some(m => m.host)) { note('房主離開了，房間解散'); leaveRoom(); return; }
+      if (!iAmHost && !hostSeen()) { note('房主離開了，房間解散'); leaveRoom(); return; }
       if (!iAmHost && members.length > 6) {
         const noHost = members.filter(m => !m.host).map(m => m.id).sort();
         const overflow = noHost.slice(5);            // 房主 + 5 人 = 6，超過的踢
@@ -136,6 +176,8 @@ const NetMatch = (() => {
   }
 
   function onLeave(key) {
+    delete peerState[key];
+    if (lobbyOpen) { onPresence(); }   // 重跑房主在否檢查＋重繪（presence sync 可能比這步早到）
     if (inMatch) {
       const e = enemies.find(x => x.remote && x.netId === key);
       if (e && !e.dead) {
@@ -159,7 +201,7 @@ const NetMatch = (() => {
     if (sendTimer) { clearInterval(sendTimer); sendTimer = null; }
     if (ch) { try { Online.client.removeChannel(ch); } catch (e) {} }
     ch = null; lobbyOpen = false; inMatch = false; matchOver = false;
-    members = []; bufs = {}; hps = {}; code = ''; iAmHost = false;
+    members = []; bufs = {}; hps = {}; code = ''; iAmHost = false; peerState = {}; lastMemberCount = 0;
   }
 
   // ---------- 大廳 UI ----------
@@ -181,7 +223,7 @@ const NetMatch = (() => {
     document.querySelectorAll('.room-join-team').forEach(b => b.addEventListener('click', () => {
       const t = +b.dataset.team;
       console.log('[NET] 點選隊', t);
-      if (members.filter(m => m.id !== myId() && m.team === t).length >= 3) { note('這隊滿了'); return; }
+      if (localMembers().filter(m => m.id !== myId() && m.team === t).length >= 3) { note('這隊滿了'); return; }
       Sound.ui(); me.team = t; track(); armWatchdog(); renderLobby();
     }));
     document.getElementById('room-leave-btn').addEventListener('click', () => { Sound.uiBack(); leaveRoom(); });
@@ -208,7 +250,7 @@ const NetMatch = (() => {
     document.getElementById('room-start-btn').addEventListener('click', () => {
       if (!iAmHost || !canStart()) return;
       Sound.ui();
-      const r = members.filter(m => m.team != null && m.hero).map(m => ({ id: m.id, name: m.name, team: m.team, hero: m.hero }));
+      const r = localMembers().filter(m => m.team != null && m.hero).map(m => ({ id: m.id, name: m.name, team: m.team, hero: m.hero }));
       matchNo++;
       try { ch.send({ type: 'broadcast', event: 'start', payload: { roster: r, m: matchNo } }); } catch (e) {}
       beginFromRoster(r, matchNo);
@@ -226,18 +268,26 @@ const NetMatch = (() => {
   }
 
   function canStart() {
-    const teamed = members.filter(m => m.team != null);
+    const ms = localMembers();
+    const teamed = ms.filter(m => m.team != null);
     const t0 = teamed.filter(m => m.team === 0), t1 = teamed.filter(m => m.team === 1);
     if (!t0.length || !t1.length) return false;
     if (teamed.some(m => !m.hero)) return false;
-    if (members.some(m => m.team == null)) return false;              // 有人還沒選隊
+    if (ms.some(m => m.team == null)) return false;                   // 有人還沒選隊
     if (teamed.some(m => !m.host && !m.ready)) return false;          // 非房主都要準備
     return true;
   }
 
   function localMembers() {
-    const out = members.map(m => m.id === myId()
-      ? Object.assign({}, m, { team: me.team, hero: me.hero, ready: me.ready }) : m);
+    const out = members.map(m => {
+      if (m.id === myId()) return Object.assign({}, m, { team: me.team, hero: me.hero, ready: me.ready, name: Online.myName || m.name });
+      const p = peerState[m.id];
+      return p ? Object.assign({}, m, p) : m;
+    });
+    for (const k in peerState) {
+      if (k !== myId() && !out.some(m => m.id === k))
+        out.push(Object.assign({ id: k }, peerState[k]));
+    }
     if (!out.some(m => m.id === myId()))
       out.push({ id: myId(), name: Online.myName || '?', host: iAmHost, team: me.team, hero: me.hero, ready: me.ready });
     return out;
