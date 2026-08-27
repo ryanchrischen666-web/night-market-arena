@@ -257,6 +257,34 @@ function initTouch() {
 }
 initTouch();
 
+// ===== 安裝成 App（PWA）=====
+(function () {
+  const btn = document.getElementById('install-btn');
+  if (!btn) return;
+  let deferred = null;
+  const standalone = matchMedia('(display-mode: standalone)').matches ||
+                     matchMedia('(display-mode: fullscreen)').matches || navigator.standalone;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); deferred = e;
+    if (!standalone) btn.classList.remove('hidden');
+  });
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIOS && !standalone) btn.classList.remove('hidden');
+  btn.addEventListener('click', async () => {
+    Sound.ui();
+    if (deferred) { deferred.prompt(); deferred = null; return; }
+    let tip = document.getElementById('ios-install-tip');
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.id = 'ios-install-tip';
+      tip.innerHTML = '<b>安裝到主畫面：</b><br>用 Safari 開啟本頁 → 點下方「分享」<span style="font-size:18px">⬆️</span> → 「加入主畫面」<div style="margin-top:8px;opacity:.7">（點一下關閉）</div>';
+      tip.addEventListener('click', () => tip.remove());
+      document.body.appendChild(tip);
+    }
+  });
+  window.addEventListener('appinstalled', () => btn.classList.add('hidden'));
+})();
+
 // ===== 玩家名字（S5：跟線上面板共用同一份，重開瀏覽器還記得）=====
 const PlayerName = (() => {
   const KEY = 'nma_online_name';

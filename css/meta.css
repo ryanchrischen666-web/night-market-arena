@@ -222,3 +222,11 @@ body.touch #pause-btn { top: 14px; right: 62px; }
 .hero-bars .hb:nth-child(2) b { background: linear-gradient(90deg, #5cc8e0, #9be8f5); }
 .hero-bars .hb:nth-child(3) b { background: linear-gradient(90deg, #e0645c, #ff9a8a); }
 .hero-bars em { font-style: normal; font-family: 'Space Mono', monospace; font-size: 10px; width: 26px; text-align: right; opacity: 0.8; }
+
+
+/* ===== PWA 安裝指引（iOS）===== */
+#ios-install-tip { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  background: rgba(20,10,34,0.97); border: 2px solid var(--lantern); border-radius: 12px;
+  color: #f6e6cf; font-family: 'Noto Serif TC', serif; font-size: 14px; line-height: 1.7;
+  padding: 14px 20px; z-index: 400; max-width: 320px; text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6); }

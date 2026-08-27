@@ -1,0 +1,16 @@
+{
+  "name": "夜市擂台 Night Market Arena",
+  "short_name": "夜市擂台",
+  "description": "台灣夜市主題的小吃英雄亂鬥——單機挑戰與好友連線對戰",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#140a22",
+  "theme_color": "#140a22",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
