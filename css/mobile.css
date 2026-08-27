@@ -109,11 +109,39 @@
     #mode-screen .btn { padding: 7px 24px; font-size: 14px; margin-top: 4px; }
     #mode-screen { padding: 6px; }
 
-    /* 標題畫面塞得下 */
-    .title { font-size: 54px; }
-    .subtitle { font-size: 13px; }
-    .tagline { font-size: 12px; }
+    /* 標題畫面：一頁放完，字縮但排版保持呼吸感 */
+    #title-screen { padding: 8px 6px; justify-content: flex-start; }
+    #title-screen > :first-child { margin-top: auto; }
+    #title-screen > :last-child { margin-bottom: auto; }
+    .title { font-size: 36px; margin: 8px 0 0; line-height: 1.05; }
+    .subtitle { font-size: 11px; letter-spacing: 4px; margin: 2px 0 0; }
+    .tagline { font-size: 11px; line-height: 1.5; margin: 4px 0 2px; max-width: 88vw; }
     .tagline-en { display: none; }
-    #title-screen .btn { padding: 10px 30px; }
-    .name-row { margin: 6px 0 0; }
+    #title-screen .btn { padding: 8px 34px; font-size: 15px; margin: 4px 0 2px; }
+    .title-subbtns { gap: 6px; margin-top: 4px; }
+    .btn-mini { padding: 5px 10px; font-size: 12px; }
+    .btn-mini span { font-size: 8px; }
+    .name-row { margin: 5px 0 0; }
+    #player-name-input { padding: 5px 12px; font-size: 13px; width: 200px; }
+    .meta-bar { transform: scale(0.8); margin: -2px 0 0; }
+    .lantern { transform: scale(0.7); }
   }
+
+  /* ===== 瀏海與圓角安全區：角落按鈕整顆都要看得到 ===== */
+  body.touch #mob-menu-btn {
+    top: calc(8px + env(safe-area-inset-top, 0px));
+    right: calc(10px + env(safe-area-inset-right, 0px));
+  }
+  body.touch #pause-btn {
+    top: calc(8px + env(safe-area-inset-top, 0px));
+    right: calc(56px + env(safe-area-inset-right, 0px));
+  }
+  body.touch #audio-controls.open {
+    top: calc(48px + env(safe-area-inset-top, 0px));
+    right: calc(10px + env(safe-area-inset-right, 0px));
+  }
+  body.touch #online-panel {
+    left: calc(10px + env(safe-area-inset-left, 0px));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  body.touch #touch-buttons { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }

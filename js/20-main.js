@@ -301,6 +301,10 @@ const PlayerName = (() => {
     input.addEventListener('blur', () => set(input.value));
     // 打字時不要觸發遊戲的鍵盤操作
     input.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') input.blur(); });
+    // 點輸入框以外的任何地方 → 收起鍵盤、離開打字模式
+    document.addEventListener('pointerdown', (e) => {
+      if (document.activeElement === input && e.target !== input) input.blur();
+    }, true);
   }
   return { get, set };
 })();
