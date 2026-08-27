@@ -2,7 +2,15 @@
   #touch-controls { display: none; position: fixed; inset: 0; z-index: 45; pointer-events: none; }
   body.touch.playing #touch-controls { display: block; }
   #joy-zone { position: absolute; left: 0; bottom: 0; width: 34%; height: 80%; pointer-events: auto; }
-  #aim-zone { position: absolute; right: 0; bottom: 0; width: 34%; height: 80%; pointer-events: auto; }
+  /* ⚔ 攻擊鍵＝瞄準搖桿：按住拖曳往哪瞄哪、輕點快攻（傳說對決式） */
+  #aim-zone { position: absolute; left: auto; top: auto;
+    width: 108px; height: 108px; border-radius: 50%;
+    right: calc(10px + env(safe-area-inset-right, 0px));
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    background: radial-gradient(circle at 38% 32%, #ff8a5a, #d62828);
+    box-shadow: 0 5px 0 #7a1414, 0 8px 22px rgba(214,40,40,0.5);
+    pointer-events: auto; display: flex; align-items: center; justify-content: center; }
+  #aim-zone::after { content: '⚔'; font-size: 38px; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
   #joy { position: absolute; width: 124px; height: 124px; margin: -62px 0 0 -62px; border-radius: 50%; background: radial-gradient(circle, rgba(244,169,60,0.12), rgba(244,169,60,0.03)); border: 2px solid rgba(244,169,60,0.4); pointer-events: none; }
   #joy.hidden { display: none; }
   #joy-knob { position: absolute; left: 62px; top: 62px; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 14px rgba(0,0,0,0.55); }
@@ -16,13 +24,13 @@
   .tbtn-atk { display: none; }   /* 右搖桿取代攻擊鈕 */
   .tbtn-ab { width: 54px; height: 54px; font-size: 19px; color: #2a1640; background: radial-gradient(circle at 38% 32%, #ffe6a8, #f4a93c); box-shadow: 0 4px 0 #9a6a1e, 0 6px 16px rgba(0,0,0,0.45); }
   .tbtn-ab.cooling { background: #3a3348; color: rgba(245,230,200,0.4); box-shadow: 0 3px 0 #221d2e; }
-  /* 技能鈕：右下角 1/4 圓弧扇形（拇指自然擺放的位置） */
-  #touch-buttons { left: auto; margin-left: 0; width: 200px; height: 200px;
+  /* 技能鈕：繞著 ⚔ 攻擊鍵的 1/4 圓弧 */
+  #touch-buttons { left: auto; margin-left: 0; width: 220px; height: 220px;
     right: calc(4px + env(safe-area-inset-right, 0px));
     bottom: calc(4px + env(safe-area-inset-bottom, 0px)); }
-  #tb-q { right: 128px; bottom: 14px; }
-  #tb-e { right: 96px; bottom: 88px; }
-  #tb-r { right: 24px; bottom: 128px; }
+  #tb-q { right: 160px; bottom: 14px; }
+  #tb-e { right: 136px; bottom: 106px; }
+  #tb-r { right: 58px; bottom: 158px; }
   .tb-ic { pointer-events: none; }
   body.touch .controls-hint { display: none; }
   /* ===== Rotate-to-landscape hint ===== */
@@ -66,7 +74,7 @@
     animation: ctrlHint 4s ease forwards;
   }
   body.touch.playing #touch-controls::before { content: '⬅ 這半邊滑動移動'; left: 6%; }
-  body.touch.playing #touch-controls::after { content: '這半邊滑動瞄準射擊 ➡'; right: 6%; }
+  body.touch.playing #touch-controls::after { content: '按住 ⚔ 拖曳瞄準射擊 ↘'; right: 6%; }
   @keyframes ctrlHint { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
 
   /* ===== 手機：舞台撐滿全螢幕，遊戲畫面保持比例置中，選單吃滿整個橫向空間 ===== */

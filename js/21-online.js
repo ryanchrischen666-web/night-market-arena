@@ -125,7 +125,7 @@ const Online = (() => {
     if (!p) {
       p = document.createElement('div');
       p.id = 'online-panel';
-      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v22</span></h4>'
+      p.innerHTML = '<h4><span class="dot off"></span><span class="ttl">線上 ONLINE</span><span style="float:right;opacity:.45">v23</span></h4>'
                   + '<ul id="online-list"></ul><div class="om"></div>'
                   + '<div style="display:flex;gap:6px"><button id="online-mkroom-btn">開房間</button>'
                   + '<button id="online-joroom-btn">加入房間</button></div>'

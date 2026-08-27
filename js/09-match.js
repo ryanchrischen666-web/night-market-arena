@@ -123,7 +123,9 @@ function updateHud() {
     document.getElementById('hp-fill').style.width = (100 * Math.max(0, p1.hp) / p1.maxHp) + '%';
     document.getElementById('hp-text').textContent = `${Math.max(0, Math.round(p1.hp))} / ${p1.maxHp}`;
   }
-  document.getElementById('enemies-left').textContent = enemies.filter(e => !e.dead).length;
+  document.getElementById('enemies-left').textContent = (window.NetMatch && NetMatch.inMatch)
+    ? enemies.filter(e => !e.dead && e.hostileNet).length
+    : enemies.filter(e => !e.dead).length;
   const _bb = document.getElementById('boss-bar');
   if (_bb) {
     if (currentMode === 'boss' && boss && !boss.dead) {
