@@ -41,6 +41,11 @@ function drawZones() {
       ctx.fillStyle = `rgba(168, 216, 255, ${0.35 * a})`;
       ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, Math.PI*2); ctx.fill();
       ctx.strokeStyle = `rgba(207, 234, 255, ${0.7 * a})`; ctx.lineWidth = 2; ctx.stroke();
+      // 冰晶：六道放射尖刺，炸開瞬間最大再縮回
+      const grow = Math.min(1, (1 - a) * 4);
+      ctx.save(); ctx.translate(z.x, z.y); ctx.strokeStyle = `rgba(230,246,255,${0.8 * a})`; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+      for (let i = 0; i < 6; i++) { const an = i * Math.PI / 3 + 0.3; const L = z.r * 0.75 * grow; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(an) * L, Math.sin(an) * L); ctx.moveTo(Math.cos(an) * L * 0.6, Math.sin(an) * L * 0.6); ctx.lineTo(Math.cos(an + 0.4) * L * 0.75, Math.sin(an + 0.4) * L * 0.75); ctx.stroke(); }
+      ctx.restore();
     } else if (z.type === 'slick') {
       ctx.fillStyle = `rgba(168, 216, 255, ${0.2 * a})`;
       ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, Math.PI*2); ctx.fill();
@@ -63,10 +68,19 @@ function drawZones() {
       if (z.heavy && pr > 0.55) { const sw = (pr - 0.55) / 0.45; ctx.strokeStyle = `rgba(255,255,255,${(1 - sw) * 0.45})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, z.range * (0.5 + sw * 0.7), -span, span); ctx.stroke(); }
       ctx.restore();
     } else if (z.type === 'stink') {
-      ctx.fillStyle = z.hostile ? `rgba(120, 80, 50, ${0.4 * Math.min(a*2, 1)})` : `rgba(122, 138, 58, ${0.4 * Math.min(a*2, 1)})`;
+      const tt = performance.now() / 1000, vis = Math.min(a * 2, 1);
+      ctx.fillStyle = z.hostile ? `rgba(120, 80, 50, ${0.4 * vis})` : `rgba(122, 138, 58, ${0.4 * vis})`;
       ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, Math.PI*2); ctx.fill();
       ctx.strokeStyle = `rgba(122, 138, 58, ${0.7 * a})`; ctx.lineWidth = 2;
       ctx.setLineDash([4, 6]); ctx.stroke(); ctx.setLineDash([]);
+      // 冒泡泡／熱氣：往上飄的小圈
+      const nb = Math.max(3, Math.round(z.r / 18));
+      for (let i = 0; i < nb; i++) {
+        const ph = (tt * 0.6 + i * 0.37 + z.x * 0.01) % 1;
+        const bx = z.x + Math.sin(i * 2.4 + z.y) * z.r * 0.6, by = z.y + z.r * 0.3 - ph * z.r * 1.1;
+        ctx.strokeStyle = z.hostile ? `rgba(255,170,90,${(1 - ph) * 0.6 * vis})` : `rgba(190,220,120,${(1 - ph) * 0.6 * vis})`; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(bx, by, 3 + ph * 4, 0, Math.PI * 2); ctx.stroke();
+      }
     } else if (z.type === 'ink') {
       ctx.fillStyle = `rgba(20, 8, 30, ${0.7 * a})`;
       ctx.beginPath(); ctx.arc(z.x, z.y, z.r * (1 - a*0.3), 0, Math.PI*2); ctx.fill();
@@ -79,10 +93,17 @@ function drawZones() {
       ctx.fillStyle = `rgba(156, 138, 108, ${0.4 * a})`;
       ctx.beginPath(); ctx.arc(z.x, z.y, z.r * (1 + (1-a)*0.3), 0, Math.PI*2); ctx.fill();
     } else if (z.type === 'soup') {
-      ctx.fillStyle = `rgba(255, 226, 122, ${0.18 * a})`;
+      const tt = performance.now() / 1000;
+      const sg = ctx.createRadialGradient(z.x, z.y, z.r * 0.2, z.x, z.y, z.r);
+      sg.addColorStop(0, `rgba(255, 226, 122, ${0.05 * a})`); sg.addColorStop(1, `rgba(255, 226, 122, ${0.22 * a})`);
+      ctx.fillStyle = sg;
       ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, Math.PI*2); ctx.fill();
+      ctx.save(); ctx.translate(z.x, z.y); ctx.rotate(tt * 0.4);
       ctx.strokeStyle = `rgba(255, 226, 122, ${0.6 * a})`;
-      ctx.setLineDash([8, 4]); ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+      ctx.setLineDash([8, 4]); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, z.r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.restore();
+      // 治癒光點往上飄
+      for (let i = 0; i < 6; i++) { const ph = (tt * 0.5 + i * 0.17) % 1; const px = z.x + Math.cos(i * 1.05 + tt * 0.2) * z.r * 0.7, py = z.y + z.r * 0.5 - ph * z.r; ctx.fillStyle = `rgba(255,240,170,${(1 - ph) * 0.7 * a})`; ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI * 2); ctx.fill(); }
     }
   }
 }
@@ -93,6 +114,33 @@ function drawProjectiles() {
     const sp = Math.hypot(p.vx, p.vy) || 1;
     const ang = Math.atan2(p.vy, p.vx);
     const col = p.color && p.color[0] === '#' ? p.color : '#ffd86b';
+    // 拖尾：最近幾幀的位置，由細到粗、由淡到濃
+    if (p.trail && p.trail.length >= 4 && p.style !== 'wave') {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      const n = p.trail.length / 2;
+      for (let i = 1; i < n; i++) {
+        const k = i / n;
+        ctx.strokeStyle = hexA(col, 0.05 + k * 0.3); ctx.lineWidth = p.r * 1.6 * k;
+        ctx.beginPath(); ctx.moveTo(p.trail[(i - 1) * 2], p.trail[(i - 1) * 2 + 1]); ctx.lineTo(p.trail[i * 2], p.trail[i * 2 + 1]); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    if (p.style === 'wave') {   // 雞排酥浪：寬幅弧形衝擊波
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(ang);
+      const k = Math.max(0, Math.min(1, p.life));
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 3; i++) {
+        const rr = p.r * (1.2 - i * 0.28);
+        ctx.strokeStyle = hexA(i === 1 ? '#ffffff' : col, (0.85 - i * 0.22) * (0.4 + k * 0.6));
+        ctx.lineWidth = 5 - i * 1.2; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.arc(-rr * 0.9 - i * 6, 0, rr, -1.1, 1.1); ctx.stroke();
+      }
+      const wg = ctx.createRadialGradient(0, 0, 0, 0, 0, p.r * 1.4);
+      wg.addColorStop(0, hexA(col, 0.35)); wg.addColorStop(1, hexA(col, 0));
+      ctx.fillStyle = wg; ctx.beginPath(); ctx.arc(0, 0, p.r * 1.4, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      continue;
+    }
     ctx.save();
     ctx.translate(p.x, p.y);
     const gr = p.r + 7;

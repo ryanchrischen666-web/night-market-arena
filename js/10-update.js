@@ -83,7 +83,8 @@ function updatePlayerCore(dt) {
     player.burnTickP += dt;
     if (player.burnTickP >= 0.5) { player.burnTickP = 0; damagePlayer(player.burnDmgP * 0.5, player.burnSrc); }
   }
-  const _cc = player.stunT > 0 || player.frozenT > 0;
+  const _cc = player.stunT > 0 || player.frozenT > 0 || FX.introActive() || (player.spawnT || 0) > 0;
+  if (player.spawnT > 0) player.spawnT -= dt;
 
   // === Player movement ===
   let mx = 0, my = 0;
@@ -108,6 +109,8 @@ function updatePlayerCore(dt) {
   // Player dash (sugar strike, bike charge)
   if (player.dashTo) {
     player.dashTo.time += dt;
+    player._aiT = (player._aiT || 0) - dt;
+    if (player._aiT <= 0) { FX.afterimage(player); player._aiT = 0.03; }
     const t = clamp(player.dashTo.time / player.dashTo.dur, 0, 1);
     player.x += (player.dashTo.x - player.x) * 0.3;
     player.y += (player.dashTo.y - player.y) * 0.3;
@@ -166,14 +169,16 @@ function updatePlayerCore(dt) {
       if (player.speedBuff > 0.5) continue;          // 加速中就先不吃
       player.speedBuff = 4; player.speedBuffMul = 1.45;
       dmgText(player.x, player.y - 34, '加速！', '#7fd8ff');
-      spawnParticles(hp.x, hp.y, 18, '#7fd8ff', { speed: 4, life: 0.6, size: 3 });
-      Sound.heal();
+      spawnParticles(hp.x, hp.y, 18, '#7fd8ff', { speed: 4, life: 0.6, size: 3, glow: true });
+      spawnRing(hp.x, hp.y, '#7fd8ff', 40, 0.3);
+      Sound.pickup('boots');
     } else {
       if (player.hp >= player.maxHp) continue;
       player.hp = Math.min(player.maxHp, player.hp + hp.heal);
       dmgText(player.x, player.y - 34, '+' + hp.heal, '#7ddf6b');
-      spawnParticles(hp.x, hp.y, 16, '#7ddf6b', { speed: 3, life: 0.6, size: 3 });
-      Sound.heal();
+      spawnParticles(hp.x, hp.y, 16, '#7ddf6b', { speed: 3, life: 0.6, size: 3, glow: true, gravity: -0.08 });
+      spawnRing(hp.x, hp.y, '#7ddf6b', 40, 0.3);
+      Sound.pickup('heal');
       updateHud();
     }
     hp.cd = hp.maxCd;
@@ -220,11 +225,13 @@ function updatePlayerCore(dt) {
 }
 
 function update(dt) {
-  if (state !== 'playing' || !players.length) return;
+  if (!players.length) return;
+  if (state !== 'playing') { if (state === 'won' || state === 'lost') updateCosmetics(dt); return; }
 
   for (const p of players) { if (!p.dead) updatePlayer(p, dt); }
   player = players[0];
   updateAbilityBar();
+  updateMusicIntensity();
 
   // === Standing in zones (player) ===
   for (const z of zones) {
@@ -292,6 +299,11 @@ function update(dt) {
   // === Enemies ===
   for (const e of enemies) {
     if (e.dead) continue;
+    if (e.spawnT > 0) {   // 跳進場的 0.5 秒：不動不打，落地揚塵
+      e.spawnT -= dt;
+      if (e.spawnT <= 0) { spawnRing(e.x, e.y + e.r * 0.6, 'rgba(255,230,200,0.9)', e.r * 2.2, 0.3); spawnParticles(e.x, e.y + e.r * 0.6, 10, '#c9b79a', { speed: 2.5, life: 0.4, size: 3 }); addShake(e.isBoss ? 9 : 2); if (e.isBoss) { Sound.slam(); FX.flash(0.2, '255,180,120'); } }
+      continue;
+    }
     if (e.isBoss) { updateBoss(e, dt); continue; }
     if (e.isMinion) { updateMinion(e, dt); continue; }
     if (e.remote) { updateRemote(e, dt); continue; }
@@ -327,6 +339,7 @@ function update(dt) {
     // Dashing (sausage AI)
     if (e.dashing > 0) {
       e.dashing -= dt;
+      e._aiT = (e._aiT || 0) - dt; if (e._aiT <= 0) { FX.afterimage(e); e._aiT = 0.035; }
       e.x += Math.cos(e.dashAng) * e.dashSpeed * 60 * dt;
       e.y += Math.sin(e.dashAng) * e.dashSpeed * 60 * dt;
       if (Math.hypot(player.x - e.x, player.y - e.y) < player.r + e.r + 4 && !e._chargedPlayer) {
@@ -466,10 +479,10 @@ function update(dt) {
   enemies = enemies.filter(e => !e.dead);
   if (state === 'playing' && currentMode !== 'tutorial' && !(window.NetMatch && NetMatch.inMatch)) {
     if (currentMode === 'boss') {
-      if (!enemies.some(e => e.isBoss)) { enemies = []; state = 'won'; setTimeout(() => endGame(true), 800); }
+      if (!enemies.some(e => e.isBoss)) { enemies = []; state = 'won'; setTimeout(() => endGame(true), 1500); }
     } else if (enemies.length === 0) {
       state = 'won';
-      setTimeout(() => endGame(true), 800);
+      setTimeout(() => endGame(true), 1100);
     }
   }
 
@@ -493,6 +506,8 @@ function update(dt) {
         p.vy = Math.sin(ang) * p.speed;
       }
     }
+    if (!p.trail) p.trail = [];
+    p.trail.push(p.x, p.y); if (p.trail.length > 12) p.trail.splice(0, 2);
     p.x += p.vx * 60 * dt;
     p.y += p.vy * 60 * dt;
     p.life -= dt;
@@ -542,21 +557,33 @@ function update(dt) {
   }
   projectiles = projectiles.filter(p => p.life > 0 && p.x > -50 && p.x < W+50 && p.y > -50 && p.y < H+50);
 
-  // Particles
-  for (const p of particles) { p.x += p.vx; p.y += p.vy; p.vx *= 0.94; p.vy *= 0.94; p.life -= dt; }
+  updateCosmetics(dt);
+  updateHud();
+}
+
+// 粒子／衝擊環／傷害數字／區域倒數：勝負已分後也要繼續跑完（慢動作收尾）
+function updateCosmetics(dt) {
+  const k = dt * 60;
+  for (const p of particles) { p.x += p.vx * k; p.y += p.vy * k; const d = Math.pow(p.drag || 0.94, k); p.vx *= d; p.vy *= d; if (p.g) p.vy += p.g * k; p.life -= dt; }
   particles = particles.filter(p => p.life > 0);
-  for (const r of rings) { r.r += (r.maxR - r.r) * 0.18; r.life -= dt; }
+  for (const r of rings) { r.r += (r.maxR - r.r) * Math.min(1, 0.18 * k); r.life -= dt; }
   rings = rings.filter(r => r.life > 0);
-
-  // Damage texts
-  for (const t of dmgTexts) { t.y += t.vy; t.vy *= 0.9; t.life -= dt; }
+  for (const t of dmgTexts) { t.age += dt; t.x += (t.vx || 0) * k; t.y += t.vy * k; t.vy *= Math.pow(0.9, k); t.life -= dt; }
   dmgTexts = dmgTexts.filter(t => t.life > 0);
-
-  // Zones tick
   for (const z of zones) z.life -= dt;
   zones = zones.filter(z => z.life > 0);
+  for (const e of enemies) if (e.hitFlash > 0 && (state !== 'playing')) e.hitFlash -= dt;
+}
 
-  updateHud();
+// 音樂強度：殘血／魔王暴怒／只剩最後一個敵人 → 加鼓加琶音
+let _musInt = -1;
+function updateMusicIntensity() {
+  const p1 = players[0]; if (!p1) return;
+  let n = 1;
+  if (currentMode === 'tutorial') n = 0;
+  if (!p1.dead && p1.hp / p1.maxHp < 0.3) n = 2;
+  if (currentMode === 'boss' && boss && boss.enraged) n = 2;
+  if (n !== _musInt) { _musInt = n; Sound.setIntensity(n); }
 }
 
 function fireBasicAttack() {

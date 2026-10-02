@@ -2,7 +2,7 @@
 
 // ============ GAME STATE ============
 const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+let ctx = canvas.getContext('2d');   // let：FX 地板快取會暫時把它指到離屏畫布
 const W = canvas.width, H = canvas.height;
 
 let state = 'title';

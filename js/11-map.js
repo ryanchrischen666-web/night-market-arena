@@ -109,7 +109,7 @@ function cornerGlow(prefix, t) {
   }
 }
 
-function drawFloorMarket(t) {
+function drawFloorMarketStatic() {
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1f1230'); g.addColorStop(1, '#150b22');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = 'rgba(244,169,60,0.05)'; ctx.lineWidth = 1;
@@ -118,6 +118,11 @@ function drawFloorMarket(t) {
     const off = ((y / 40) % 2) * 20;
     for (let x = off; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 40); ctx.stroke(); }
   }
+  // 地面暗角，讓中央打架的地方更亮
+  const vg = ctx.createRadialGradient(W / 2, H / 2, 160, W / 2, H / 2, 560); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.35)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+}
+function drawFloorMarket(t) {
   for (let i = 0; i < 6; i++) {
     const lx = (i + 0.5) * (W / 6), sway = Math.sin(t * 1.5 + i) * 4;
     ctx.strokeStyle = 'rgba(120,90,40,0.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(lx, 0); ctx.lineTo(lx + sway, 26); ctx.stroke();
@@ -129,7 +134,7 @@ function drawFloorMarket(t) {
   cornerGlow('rgba(244,169,60,', t);
 }
 
-function drawFloorNinja(t) {
+function drawFloorNinjaStatic() {
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#10172a'); g.addColorStop(1, '#0a0f1e');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   const mw = 150, mh = H / 4;
@@ -138,17 +143,22 @@ function drawFloorNinja(t) {
     ctx.fillStyle = ((r + c) % 2) ? 'rgba(40,60,70,0.18)' : 'rgba(30,46,56,0.18)'; ctx.fillRect(x, y, mw, mh);
     ctx.strokeStyle = 'rgba(70,120,120,0.18)'; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, mw - 2, mh - 2);
   }
+  // 月光：左上角一道冷色光斑
+  const mg = ctx.createRadialGradient(W * 0.2, 0, 20, W * 0.2, 0, 420); mg.addColorStop(0, 'rgba(120,180,200,0.12)'); mg.addColorStop(1, 'rgba(120,180,200,0)');
+  ctx.fillStyle = mg; ctx.fillRect(0, 0, W, H);
+  const corners = [[40, 40], [W - 40, 40], [40, H - 40], [W - 40, H - 40]];
+  for (const [x, y] of corners) { ctx.fillStyle = '#1b2740'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#4fd1c5'; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill(); }
+}
+function drawFloorNinja(t) {
   for (let i = 0; i < 10; i++) {
     const px = ((i * 97 + t * 22 * ((i % 2) ? 1 : -1)) % W + W) % W;
     const py = ((i * 61 + t * 16) % H + H) % H;
     ctx.fillStyle = 'rgba(225,150,180,0.22)'; ctx.beginPath(); ctx.ellipse(px, py, 3, 1.6, i, 0, Math.PI * 2); ctx.fill();
   }
   cornerGlow('rgba(79,209,197,', t);
-  const corners = [[40, 40], [W - 40, 40], [40, H - 40], [W - 40, H - 40]];
-  for (const [x, y] of corners) { ctx.fillStyle = '#1b2740'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#4fd1c5'; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill(); }
 }
 
-function drawFloorKitchen(t) {
+function drawFloorKitchenStatic() {
   const ts = 48;
   for (let r = 0; r * ts < H; r++) for (let c = 0; c * ts < W; c++) { ctx.fillStyle = ((r + c) % 2) ? '#d7dde3' : '#bcc5cd'; ctx.fillRect(c * ts, r * ts, ts, ts); }
   ctx.strokeStyle = 'rgba(120,130,140,0.4)'; ctx.lineWidth = 1;
@@ -162,6 +172,12 @@ function drawFloorKitchen(t) {
   ctx.fillStyle = lg; ctx.fillRect(0, 0, W, 260);
   const vg = ctx.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, 520); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(20,20,30,0.25)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+}
+function drawFloorKitchen(t) {
+  // 吊燈光暈微微呼吸
+  const k = 0.06 + Math.sin(t * 1.3) * 0.03;
+  const lg = ctx.createRadialGradient(W / 2, 0, 10, W / 2, 0, 300); lg.addColorStop(0, `rgba(255,240,200,${k})`); lg.addColorStop(1, 'rgba(255,240,200,0)');
+  ctx.fillStyle = lg; ctx.fillRect(0, 0, W, 300);
 }
 
 function drawStoneBlock(x, y, w, h) {
@@ -323,13 +339,21 @@ function drawBoots(x, y, t, charged) {
   ctx.restore();
 }
 
+// 靜態層（地板 + 障礙物）由 FX.floor 快取成一張圖；動態層（燈籠、花瓣、光暈、道具）每幀畫
+function drawMapStatic() {
+  const theme = currentMap.theme;
+  if (theme === 'ninja') drawFloorNinjaStatic();
+  else if (theme === 'kitchen') drawFloorKitchenStatic();
+  else drawFloorMarketStatic();
+  for (const b of currentMap.blocks) drawBlock(b, theme, 0);
+}
 function drawMap() {
   if (!currentMap) { drawArena(); return; }
   const t = performance.now() / 1000;
+  FX.floor(currentMap, drawMapStatic);
   if (currentMap.theme === 'ninja') drawFloorNinja(t);
   else if (currentMap.theme === 'kitchen') drawFloorKitchen(t);
   else drawFloorMarket(t);
-  for (const b of currentMap.blocks) drawBlock(b, currentMap.theme, t);
   for (const hp of currentMap.props) drawHealProp(hp, currentMap.theme, t);
 }
 

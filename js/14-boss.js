@@ -14,6 +14,7 @@ function spawnBoss() {
     moveT: 0, mvx: 0, mvy: 0,
     atkT: 2.4, pattern: 0, tele: null,
     bobSeed: Math.random() * 99,
+    spawnT: 0.9,
   };
   enemies.push(boss);
 }
@@ -69,7 +70,7 @@ function startBossAttack(e, kind) {
   } else if (kind === 'minions') {
     e.tele = { type: 'minions', t: 0.7 };
   }
-  if (Sound.enemySpecial) Sound.enemySpecial('cone');
+  Sound.bossTele(kind);
 }
 
 function resolveBossAttack(e, tele) {
@@ -109,6 +110,10 @@ function updateBoss(e, dt) {
     addShake(11); addHitStop(0.1);
     bossBrothRing(e, 20, 4.2);
     spawnParticles(e.x, e.y, 32, '#caa46a', { speed: 5, life: 0.85, size: 4 });
+    spawnParticles(e.x, e.y, 40, '#ff6a3a', { speed: 7, life: 1.0, size: 5, glow: true, gravity: -0.05 });
+    spawnRing(e.x, e.y, '#ff5a3c', 160, 0.6); spawnRing(e.x, e.y, '#ffd24a', 110, 0.45);
+    FX.flash(0.55, '255,80,40'); FX.slowmo(0.45, 0.6); FX.kick(0.05);
+    Sound.bossRoar(); Sound.duck(0.6, 1.2); Sound.setIntensity(2);
     showMatchBanner('暴怒 \u00b7 ENRAGED', '滷味鍋大王沸騰了！The cauldron boils over!');
   }
 
@@ -147,8 +152,19 @@ function updateBoss(e, dt) {
 function drawBoss(e) {
   const t = performance.now() / 1000;
   const x = e.x, r = e.r, enraged = e.enraged;
-  const cy = e.y + Math.sin(t * 2 + e.bobSeed) * 3;
+  let cy = e.y + Math.sin(t * 2 + e.bobSeed) * 3;
   const bw = r * 1.15, bh = r * 0.95;
+  // 進場：從上方砸下來
+  if ((e.spawnT || 0) > 0) {
+    const k = 1 - e.spawnT / 0.9;
+    if (k < 0.75) { const f = k / 0.75; cy -= (1 - f * f) * 320; ctx.globalAlpha = Math.min(1, f * 2.5); }
+  }
+  // 暴怒：整鍋泛紅光
+  if (enraged) {
+    const gg = ctx.createRadialGradient(x, cy, r * 0.5, x, cy, r * 2.2);
+    gg.addColorStop(0, `rgba(255,80,40,${0.18 + Math.sin(t * 6) * 0.06})`); gg.addColorStop(1, 'rgba(255,80,40,0)');
+    ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(x, cy, r * 2.2, 0, Math.PI * 2); ctx.fill();
+  }
 
   // telegraph: boiling-pool warning rings on the ground
   if (e.tele && e.tele.type === 'puddles') {
@@ -258,8 +274,9 @@ function drawBoss(e) {
   if (e.hitFlash > 0) {
     ctx.globalAlpha = (e.hitFlash / 0.12) * 0.5;
     ctx.beginPath(); ctx.ellipse(x, cy, bw * 1.05, bh * 1.1, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff'; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff'; ctx.fill();
   }
+  ctx.globalAlpha = 1;
 }
 
 function drawMinion(e) {

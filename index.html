@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Night Market Arena</title>
-<link rel="stylesheet" href="css/base.css?v29">
-<link rel="stylesheet" href="css/screens.css?v29">
-<link rel="stylesheet" href="css/hud.css?v29">
-<link rel="stylesheet" href="css/mobile.css?v29">
-<link rel="stylesheet" href="css/meta.css?v29">
+<link rel="stylesheet" href="css/base.css?v30">
+<link rel="stylesheet" href="css/screens.css?v30">
+<link rel="stylesheet" href="css/hud.css?v30">
+<link rel="stylesheet" href="css/mobile.css?v30">
+<link rel="stylesheet" href="css/meta.css?v30">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#140a22">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -149,7 +149,7 @@
   <!-- HUD -->
   <div id="hud" class="hidden">
     <div id="hp-name" class="hidden"></div>
-    <div class="hp-bar"><div class="hp-fill" id="hp-fill" style="width: 100%"></div><div class="hp-text" id="hp-text">100 / 100</div></div>
+    <div class="hp-bar" id="hp-bar"><div class="hp-ghost" id="hp-ghost" style="width: 100%"></div><div class="hp-fill" id="hp-fill" style="width: 100%"></div><div class="hp-text" id="hp-text">100 / 100</div></div>
     <div class="match-info"><span id="mode-label">1v1</span> · 剩 <span id="enemies-left" class="num">0</span></div>
     <div id="boss-bar" class="hidden"><div class="boss-bar-label"><span class="bb-cn">滷味鍋大王</span><span class="bb-en">THE CAULDRON KING</span></div><div class="boss-bar-track"><div class="boss-bar-fill" id="boss-bar-fill"></div></div></div>
     <div class="abilities" id="abilities-bar"></div>
@@ -250,29 +250,30 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
 </script>
-<script src="js/00-abilities.js?v29"></script>
-<script src="js/01-heroes.js?v29"></script>
-<script src="js/02-modes.js?v29"></script>
-<script src="js/03-state.js?v29"></script>
-<script src="js/04-input.js?v29"></script>
-<script src="js/05-util.js?v29"></script>
-<script src="js/06-sound.js?v29"></script>
-<script src="js/07-enemy-ai.js?v29"></script>
-<script src="js/08-ui-select.js?v29"></script>
-<script src="js/09-match.js?v29"></script>
-<script src="js/10-update.js?v29"></script>
-<script src="js/11-map.js?v29"></script>
-<script src="js/12-render.js?v29"></script>
-<script src="js/13-art.js?v29"></script>
-<script src="js/14-boss.js?v29"></script>
-<script src="js/15-draw.js?v29"></script>
-<script src="js/16-save.js?v29"></script>
-<script src="js/17-progress.js?v29"></script>
-<script src="js/18-tutorial.js?v29"></script>
-<script src="js/19-ui-meta.js?v29"></script>
-<script src="js/20-main.js?v29"></script>
-<script src="js/21-online.js?v29"></script>
-<script src="js/22-net.js?v29"></script>
+<script src="js/00-abilities.js?v30"></script>
+<script src="js/01-heroes.js?v30"></script>
+<script src="js/02-modes.js?v30"></script>
+<script src="js/03-state.js?v30"></script>
+<script src="js/04-input.js?v30"></script>
+<script src="js/05-util.js?v30"></script>
+<script src="js/05b-fx.js?v30"></script>
+<script src="js/06-sound.js?v30"></script>
+<script src="js/07-enemy-ai.js?v30"></script>
+<script src="js/08-ui-select.js?v30"></script>
+<script src="js/09-match.js?v30"></script>
+<script src="js/10-update.js?v30"></script>
+<script src="js/11-map.js?v30"></script>
+<script src="js/12-render.js?v30"></script>
+<script src="js/13-art.js?v30"></script>
+<script src="js/14-boss.js?v30"></script>
+<script src="js/15-draw.js?v30"></script>
+<script src="js/16-save.js?v30"></script>
+<script src="js/17-progress.js?v30"></script>
+<script src="js/18-tutorial.js?v30"></script>
+<script src="js/19-ui-meta.js?v30"></script>
+<script src="js/20-main.js?v30"></script>
+<script src="js/21-online.js?v30"></script>
+<script src="js/22-net.js?v30"></script>
 
 
 

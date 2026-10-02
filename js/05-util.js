@@ -21,14 +21,17 @@ function advanceAnim(c, dt) {
   if (c.blinkT <= 0) { c.blink = 0.12; c.blinkT = rand(2.5, 6); }
 }
 
+const PARTICLE_CAP = 720;   // 手機救命線：超過就不再生新粒子
 function spawnParticles(x, y, count, color, opts = {}) {
+  if (particles.length > PARTICLE_CAP) return;
   const speed = opts.speed || 3;
   const life = opts.life || 0.5;
   const size = opts.size || 3;
+  const grav = opts.gravity || 0, glow = !!opts.glow, drag = opts.drag || 0.94;
   for (let i = 0; i < count; i++) {
     const a = Math.random() * Math.PI * 2;
     const s = rand(speed * 0.3, speed);
-    particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life, maxLife: life, color, size: rand(size*0.5, size) });
+    particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life, maxLife: life, color, size: rand(size*0.5, size), g: grav, glow, drag, shape: opts.shape || 0 });
   }
 }
 
@@ -37,16 +40,20 @@ function addHitStop(s) { if (s > hitStop) hitStop = s; }
 function addShake(m) { if (m > shakeMag) shakeMag = m; }
 function spawnRing(x, y, color, maxR, life = 0.32) { rings.push({ x, y, r: maxR * 0.3, maxR, color, life, maxLife: life }); }
 function spawnSparks(x, y, count, color, ang, speed = 4, spread = 1.0) {
+  if (particles.length > PARTICLE_CAP) return;
   for (let i = 0; i < count; i++) {
     const a = ang + rand(-spread, spread);
     const s = rand(speed * 0.4, speed);
     const life = rand(0.22, 0.45);
-    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life, maxLife: life, color, size: rand(2, 4) });
+    // 火花＝沿速度方向拉長的亮條，帶一點重力，加法混色
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life, maxLife: life, color, size: rand(2, 3.5), g: 0.12, glow: true, drag: 0.93, shape: 1 });
   }
 }
 
 function dmgText(x, y, n, color = '#fff', size = 1) {
-  dmgTexts.push({ x, y, n: typeof n === 'number' ? Math.round(n) : n, color, life: 0.8, vy: -1.2, size });
+  if (dmgTexts.length > 60) dmgTexts.shift();
+  const isNum = typeof n === 'number';
+  dmgTexts.push({ x: x + (isNum ? rand(-8, 8) : 0), y, n: isNum ? Math.round(n) : n, color, life: 0.8, maxLife: 0.8, vy: isNum ? -1.6 : -1.1, vx: isNum ? rand(-0.5, 0.5) : 0, size, age: 0 });
 }
 
 function nearestEnemy(x, y, maxR = Infinity) {
@@ -118,20 +125,35 @@ function damageEnemy(enemy, dmg, opts = {}) {
   matchStats.dmgDealt += Math.max(0, Math.min(dmg, enemy.hp));
   enemy.hp -= dmg;
   enemy.hitFlash = 0.12;
-  Sound.hit();
-  if (opts.kbX || opts.kbY) { enemy.kbX = (enemy.kbX || 0) + opts.kbX; enemy.kbY = (enemy.kbY || 0) + opts.kbY; }
   const big = dmg >= 24;
+  Sound.hit(enemy.x, big);
+  if (opts.kbX || opts.kbY) { enemy.kbX = (enemy.kbX || 0) + opts.kbX; enemy.kbY = (enemy.kbY || 0) + opts.kbY; }
   dmgText(enemy.x, enemy.y - 30, dmg, big ? '#ffe14a' : '#ffcc6b', big ? 1.4 : 1);
   const sa = (opts.kbX || opts.kbY) ? Math.atan2(opts.kbY || 0, opts.kbX || 0) : Math.random() * Math.PI * 2;
-  spawnSparks(enemy.x, enemy.y, big ? 10 : 5, '#ffe6a0', sa, big ? 5.5 : 3.5, big ? 0.9 : 1.2);
-  if (big) { addShake(3); addHitStop(0.05); }
+  spawnSparks(enemy.x, enemy.y, big ? 12 : 6, '#ffe6a0', sa, big ? 6 : 3.8, big ? 0.9 : 1.2);
+  if (big) { addShake(3); addHitStop(0.05); spawnRing(enemy.x, enemy.y, '#fff', enemy.r * 1.6, 0.18); }
   if (enemy.hp <= 0) {
     enemy.dead = true;
-    Sound.die();
-    spawnParticles(enemy.x, enemy.y, 24, enemy.color || '#d62828', { speed: 5.5, life: 0.7, size: 4 });
-    spawnParticles(enemy.x, enemy.y, 10, '#ffcc6b', { speed: 4, life: 0.6, size: 3 });
-    spawnRing(enemy.x, enemy.y, enemy.color || '#ffd24a', 48);
-    addShake(7); addHitStop(0.09);
+    if (enemy.isBoss) {
+      Sound.bossDie(); Sound.duck(0.7, 1.6);
+      for (let i = 0; i < 4; i++) setTimeout(() => { if (state === 'title') return; spawnRing(enemy.x + rand(-40, 40), enemy.y + rand(-30, 30), i % 2 ? '#ff5a3c' : '#ffd24a', 90 + i * 20, 0.5); spawnParticles(enemy.x, enemy.y, 30, i % 2 ? '#ff8a3a' : '#caa46a', { speed: 7, life: 0.9, size: 5, glow: true, gravity: 0.1 }); addShake(8); }, i * 180);
+      spawnParticles(enemy.x, enemy.y, 60, '#ffd24a', { speed: 8, life: 1.1, size: 5, glow: true, gravity: 0.08 });
+      FX.flash(0.8, '255,230,180'); FX.slowmo(0.25, 1.1); FX.kick(0.08); addShake(14); addHitStop(0.14);
+      FX.banner('擊破！', 'BOSS DOWN', '#ff5a3c', 2.2); FX.celebrate();
+    } else {
+      Sound.die(enemy.x);
+      spawnParticles(enemy.x, enemy.y, 26, enemy.color || '#d62828', { speed: 5.5, life: 0.7, size: 4, gravity: 0.1 });
+      spawnParticles(enemy.x, enemy.y, 14, '#ffcc6b', { speed: 4.5, life: 0.6, size: 3, glow: true });
+      spawnSparks(enemy.x, enemy.y, 10, '#ffffff', sa, 7, 0.7);
+      spawnRing(enemy.x, enemy.y, enemy.color || '#ffd24a', 48);
+      spawnRing(enemy.x, enemy.y, '#ffffff', 70, 0.26);
+      FX.ghost(enemy, sa);
+      addShake(7); addHitStop(0.09); FX.kick(0.035); FX.flash(0.12, '255,240,200');
+      const left = enemies.filter(e => !e.dead && !(e.remote && !e.hostileNet)).length;
+      const lastOne = left === 0 && currentMode !== 'tutorial' && !(window.NetMatch && NetMatch.inMatch);
+      if (lastOne) { FX.slowmo(0.28, 0.8); FX.flash(0.45, '255,230,180'); Sound.duck(0.6, 1.2); addShake(10); FX.celebrate(); }
+      if (!enemy.isMinion) FX.onKill(enemy.x, enemy.y);
+    }
     totalKills++;
   }
 }
@@ -146,14 +168,25 @@ function damagePlayer(dmg, srcU) {
   }
   player.hp -= dmg;
   player.hitFlash = 0.18;
-  Sound.hurt();
   const big = dmg >= 18;
+  Sound.hurt(big);
   dmgText(player.x, player.y - 30, dmg, '#ff5566', big ? 1.35 : 1);
   spawnSparks(player.x, player.y, big ? 9 : 6, '#ff8a96', Math.random() * Math.PI * 2, 4, Math.PI);
   addShake(big ? 6.5 : 3.5);
   if (big) addHitStop(0.05);
+  if (player === players[0]) {
+    FX.hurtFlash(big ? 0.7 : 0.4);
+    const bar = document.getElementById('hp-bar');
+    if (bar) { bar.classList.remove('hit'); void bar.offsetWidth; bar.classList.add('hit'); }
+    if (player.hp > 0 && player.hp / player.maxHp < 0.3) Sound.heartbeat();
+  }
   if (player.hp <= 0) { player.hp = 0; player.dead = true;
-    if (window.NetMatch && NetMatch.inMatch) NetMatch.onLocalDeath(); spawnRing(player.x, player.y, '#ff4d5e', 52); addShake(9); addHitStop(0.12); if (players.every(pl => pl.dead) && !(window.NetMatch && NetMatch.inMatch)) endGame(false); }
+    if (window.NetMatch && NetMatch.inMatch) NetMatch.onLocalDeath();
+    spawnRing(player.x, player.y, '#ff4d5e', 52); spawnRing(player.x, player.y, '#ffffff', 80, 0.3);
+    spawnParticles(player.x, player.y, 30, player.color || '#ff5566', { speed: 6, life: 0.8, size: 4, gravity: 0.1 });
+    FX.ghost(player, Math.random() * Math.PI * 2);
+    addShake(9); addHitStop(0.12);
+    if (players.every(pl => pl.dead) && !(window.NetMatch && NetMatch.inMatch)) { FX.slowmo(0.3, 0.9); FX.flash(0.5, '214,40,40'); Sound.duck(0.8, 1.5); state = 'lost'; setTimeout(() => endGame(false), 1000); }
+  }
   updateHud();
 }
-

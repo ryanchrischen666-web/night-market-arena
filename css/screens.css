@@ -274,3 +274,54 @@
   .end-actions { margin-top: 8px; gap: 8px; }
   #end-screen .rewards { margin-top: 6px; font-size: 10px; gap: 10px; }
 }
+
+/* ===== v30 選單動效：標題落下、火星飄升、按鈕呼吸、卡片彈跳 ===== */
+.screen:not(.hidden) { animation: screenIn 0.32s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+@keyframes screenIn { from { opacity: 0; transform: scale(1.015); } to { opacity: 1; transform: scale(1); } }
+#title-screen h1.title { animation: titleDrop 0.9s cubic-bezier(0.2, 1.35, 0.35, 1) both; }
+#title-screen .subtitle { animation: riseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+#title-screen .tagline { animation: riseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both; }
+#title-screen #start-btn { animation: riseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.62s both, btnBreathe 2.4s ease-in-out 1.3s infinite; }
+#title-screen .title-subbtns, #title-screen .name-row, #title-screen .meta-bar { animation: riseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.78s both; }
+@keyframes titleDrop { from { opacity: 0; transform: translateY(-70px) scale(1.15); filter: blur(6px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+@keyframes riseIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes btnBreathe { 0%, 100% { box-shadow: 0 4px 0 var(--red-deep), 0 8px 30px rgba(214, 40, 40, 0.4); } 50% { box-shadow: 0 4px 0 var(--red-deep), 0 8px 44px rgba(244, 169, 60, 0.75), 0 0 0 4px rgba(244, 169, 60, 0.12); } }
+h1.title .accent { animation: accentGlow 3s ease-in-out infinite; }
+@keyframes accentGlow { 0%, 100% { text-shadow: 4px 4px 0 var(--red-deep), 0 0 24px rgba(244, 169, 60, 0.35); } 50% { text-shadow: 4px 4px 0 var(--red-deep), 0 0 48px rgba(244, 169, 60, 0.75); } }
+.lantern { animation: sway 3s ease-in-out infinite, lanternGlow 2.6s ease-in-out infinite; }
+@keyframes lanternGlow { 0%, 100% { box-shadow: 0 0 30px var(--lantern), 0 0 60px rgba(244, 169, 60, 0.4); } 50% { box-shadow: 0 0 40px var(--lantern), 0 0 90px rgba(244, 169, 60, 0.6); } }
+.embers { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.embers i { position: absolute; bottom: -10px; width: var(--sz, 3px); height: var(--sz, 3px); border-radius: 50%; background: var(--lantern-glow); box-shadow: 0 0 8px var(--lantern), 0 0 14px rgba(244, 169, 60, 0.5); opacity: 0; animation: emberRise 9s linear infinite; }
+@keyframes emberRise { 0% { transform: translate(0, 0) scale(1); opacity: 0; } 8% { opacity: 0.9; } 60% { opacity: 0.7; } 100% { transform: translate(var(--drift, 0px), -110vh) scale(0.3); opacity: 0; } }
+
+.btn { transition: transform 0.14s cubic-bezier(0.2, 1.6, 0.4, 1), background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; }
+.btn:hover { transform: translateY(-3px) scale(1.03); }
+.btn:active { transform: translateY(2px) scale(0.98); }
+.hero-card { transition: transform 0.22s cubic-bezier(0.2, 1.4, 0.4, 1), border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
+.hero-card:hover { transform: translateY(-6px) scale(1.03); }
+.hero-card:hover .hero-emoji canvas { animation: cardBob 0.55s ease-in-out infinite alternate; }
+@keyframes cardBob { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-5px) rotate(3deg); } }
+.hero-card.selected { animation: selPulse 1.6s ease-in-out infinite; }
+.mode-card { transition: transform 0.22s cubic-bezier(0.2, 1.4, 0.4, 1), border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; }
+.mode-card:hover { transform: translateY(-6px) scale(1.02); }
+.mode-card:hover .mode-num { animation: cardBob 0.6s ease-in-out infinite alternate; }
+.mode-card.selected { animation: selPulse 1.6s ease-in-out infinite; }
+@keyframes selPulse { 0%, 100% { box-shadow: 0 0 22px rgba(244, 169, 60, 0.45); } 50% { box-shadow: 0 0 36px rgba(244, 169, 60, 0.8); } }
+.heroes-grid .hero-card { animation: cardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.heroes-grid .hero-card:nth-child(1) { animation-delay: 0.02s; } .heroes-grid .hero-card:nth-child(2) { animation-delay: 0.06s; }
+.heroes-grid .hero-card:nth-child(3) { animation-delay: 0.10s; } .heroes-grid .hero-card:nth-child(4) { animation-delay: 0.14s; }
+.heroes-grid .hero-card:nth-child(5) { animation-delay: 0.18s; } .heroes-grid .hero-card:nth-child(6) { animation-delay: 0.22s; }
+.heroes-grid .hero-card:nth-child(7) { animation-delay: 0.26s; } .heroes-grid .hero-card:nth-child(8) { animation-delay: 0.30s; }
+.heroes-grid .hero-card:nth-child(9) { animation-delay: 0.34s; }
+.modes-grid .mode-card { animation: cardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.modes-grid .mode-card:nth-child(2) { animation-delay: 0.07s; } .modes-grid .mode-card:nth-child(3) { animation-delay: 0.14s; } .modes-grid .mode-card:nth-child(4) { animation-delay: 0.21s; }
+@keyframes cardIn { from { opacity: 0; transform: translateY(22px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.pause-box { animation: pauseIn 0.3s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+@keyframes pauseIn { from { opacity: 0; transform: scale(0.85) translateY(10px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .screen:not(.hidden), #title-screen h1.title, #title-screen .subtitle, #title-screen .tagline, #title-screen #start-btn,
+  #title-screen .title-subbtns, #title-screen .name-row, #title-screen .meta-bar, h1.title .accent, .lantern, .embers i,
+  .hero-card, .mode-card, .hero-card:hover .hero-emoji canvas, .mode-card:hover .mode-num, .heroes-grid .hero-card, .modes-grid .mode-card, .pause-box { animation: none !important; opacity: 1; }
+  .btn:hover, .hero-card:hover, .mode-card:hover { transform: none; }
+}

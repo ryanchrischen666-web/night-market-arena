@@ -30,12 +30,18 @@ function startMatch(heroId, mode, opts = {}) {
   if (mode === 'boss') spawnBoss();
   players.forEach(resolveBlocks);
   enemies.forEach(resolveBlocks);
+  // 開場：角色依序跳進場（連線模式對手由網路驅動，不做進場延遲）
+  FX.reset();
+  const quick = (mode === 'net' || mode === 'tutorial');
+  player.spawnT = quick ? 0.25 : 0.45;
+  if (!quick) enemies.forEach((e, i) => { e.spawnT = (e.isBoss ? 0.85 : 0.55) + i * 0.12; });
 
   state = 'playing';
   // 關掉所有選單畫面（教學可從標題直接開打，不只從模式畫面進來）
   document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
   document.getElementById('hud').classList.remove('hidden');
   document.getElementById('mode-label').textContent = mode === 'tutorial' ? '教學 TUTORIAL' : mode.toUpperCase();
+  document.getElementById('hud').classList.toggle('bossmode', mode === 'boss');   // 魔王血條在中上，剩餘計數讓位
   document.getElementById('controls-hint').innerHTML = '<b>WASD</b> 移動 \u00b7 <b>滑鼠</b> 瞄準 \u00b7 <b>點擊</b> 攻擊 \u00b7 <b>Q E R</b> 技能';
   buildAbilityBar();
   const _nm = (window.PlayerName && PlayerName.get()) || '';
@@ -43,9 +49,13 @@ function startMatch(heroId, mode, opts = {}) {
   if (_nmEl) { _nmEl.textContent = _nm; _nmEl.classList.toggle('hidden', !_nm); }
   if (touchMode) buildMobileButtons();
   document.body.classList.add('playing');
-  Sound.init(); Sound.resume(); Sound.matchStart(); Sound.startMusic(currentMap.theme);
-  showMatchBanner(mode === 'boss' ? '魔王戰 \u00b7 BOSS' : mode.toUpperCase(),
-    mode === 'boss' ? h.cn + ' vs 滷味鍋大王' : h.cn + ' vs ' + opps.map(id => HEROES[id].cn).join(' + '));
+  Sound.init(); Sound.resume();
+  Sound.setIntensity(mode === 'tutorial' ? 0 : 1);
+  Sound.startMusic(mode === 'boss' ? 'boss' : currentMap.theme);
+  const vsTxt = mode === 'boss' ? h.cn + ' vs 滷味鍋大王' : h.cn + ' vs ' + opps.map(id => HEROES[id].cn).join(' + ');
+  if (quick) { if (mode === 'tutorial') showMatchBanner('教學 \u00b7 TUTORIAL', vsTxt); FX.startIntro({ quick: true }); }
+  else FX.startIntro({ cn: (mode === 'boss' ? '魔王戰 \u00b7 ' : mode.toUpperCase() + ' \u00b7 ') + vsTxt });
+  _hudCache = {};
   updateHud();
 }
 
@@ -98,14 +108,23 @@ function buildAbilityBar() {
 function updateAbilityBar() {
   const bar = document.getElementById('abilities-bar');
   player.abilities.forEach((a, i) => {
-    const el = bar.children[i];
+    const el = bar.children[i]; if (!el) return;
     const cdEl = el.querySelector('.cd-overlay');
-    if (a.timer > 0) { cdEl.style.display = 'flex'; cdEl.textContent = a.timer.toFixed(1); el.classList.remove('ready'); }
-    else { cdEl.style.display = 'none'; el.classList.add('ready'); }
+    if (a.timer > 0) {
+      if (!a._cooling) { a._cooling = true; cdEl.style.display = 'flex'; el.classList.remove('ready', 'pop'); }
+      const txt = a.timer.toFixed(1); if (cdEl._t !== txt) { cdEl._t = txt; cdEl.textContent = txt; }
+      el.style.setProperty('--cd', (a.timer / (a.cd || 1)).toFixed(3));   // 圓錐掃描
+    } else if (a._cooling || !el.classList.contains('ready')) {
+      // 冷卻剛好轉完：叮一聲 + 彈一下（手機按鈕也一起亮）
+      const wasCooling = !!a._cooling;
+      a._cooling = false; cdEl.style.display = 'none'; el.style.setProperty('--cd', '0'); el.classList.add('ready');
+      if (wasCooling) { el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 500); if (player === players[0] && state === 'playing') Sound.ready(); }
+    }
   });
 }
 
 function tryCast(i) {
+  if (FX.introActive() || (player.spawnT || 0) > 0) return;   // 開場倒數中先別放
   const ab = player.abilities[i];
   if (player === players[0] && player.id === 'chicken' && i === 2 && player.feastT > 0) {
     player.feastT = 0; Sound.uiBack();
@@ -122,21 +141,35 @@ function tryCast(i) {
   Tutorial.onCast(i);
 }
 
+// HUD 每幀都會被呼叫：只有值真的變了才碰 DOM（省 layout／repaint）
+let _hudCache = {};
+function _hudSet(key, el, prop, val) {
+  if (_hudCache[key] === val) return;
+  _hudCache[key] = val;
+  if (prop === 'text') el.textContent = val; else el.style[prop] = val;
+}
 function updateHud() {
   const p1 = players[0];
   if (p1) {
-    document.getElementById('hp-fill').style.width = (100 * Math.max(0, p1.hp) / p1.maxHp) + '%';
-    document.getElementById('hp-text').textContent = `${Math.max(0, Math.round(p1.hp))} / ${p1.maxHp}`;
+    const pct = (100 * Math.max(0, p1.hp) / p1.maxHp);
+    const w = pct.toFixed(1) + '%';
+    _hudSet('hpw', document.getElementById('hp-fill'), 'width', w);
+    const gh = document.getElementById('hp-ghost'); if (gh) _hudSet('hpg', gh, 'width', w);
+    _hudSet('hpt', document.getElementById('hp-text'), 'text', `${Math.max(0, Math.round(p1.hp))} / ${p1.maxHp}`);
+    const bar = document.getElementById('hp-bar'); if (bar) { const low = pct < 30 && p1.hp > 0; if (_hudCache.low !== low) { _hudCache.low = low; bar.classList.toggle('low', low); } }
   }
-  document.getElementById('enemies-left').textContent = (window.NetMatch && NetMatch.inMatch)
+  const left = (window.NetMatch && NetMatch.inMatch)
     ? enemies.filter(e => !e.dead && e.hostileNet).length
     : enemies.filter(e => !e.dead).length;
+  const leftEl = document.getElementById('enemies-left');
+  if (_hudCache.left !== undefined && _hudCache.left !== left && leftEl) { leftEl.classList.remove('bump'); void leftEl.offsetWidth; leftEl.classList.add('bump'); }
+  _hudSet('left', leftEl, 'text', String(left));
   const _bb = document.getElementById('boss-bar');
   if (_bb) {
     if (currentMode === 'boss' && boss && !boss.dead) {
       _bb.classList.remove('hidden');
-      document.getElementById('boss-bar-fill').style.width = (100 * Math.max(0, boss.hp) / boss.maxHp) + '%';
-      _bb.classList.toggle('enraged', !!boss.enraged);
+      _hudSet('bossw', document.getElementById('boss-bar-fill'), 'width', (100 * Math.max(0, boss.hp) / boss.maxHp).toFixed(1) + '%');
+      if (_hudCache.enr !== !!boss.enraged) { _hudCache.enr = !!boss.enraged; _bb.classList.toggle('enraged', !!boss.enraged); }
     } else { _bb.classList.add('hidden'); }
   }
   if (touchMode && players[0]) {
@@ -157,6 +190,7 @@ function endGame(victory) {
   state = 'ended';
   document.body.classList.remove('playing');
   Sound.stopMusic(); if (victory) Sound.win(); else Sound.lose();
+  setTimeout(() => { if (state === 'ended') { Sound.setIntensity(0); Sound.startMusic('menu'); } }, victory ? 2600 : 2200);
   document.getElementById('hud').classList.add('hidden');
 
   const seconds = (performance.now() - runStart) / 1000;

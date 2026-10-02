@@ -2,12 +2,15 @@
 
 // ============ MAIN LOOP ============
 function loop(now) {
-  const dt = lastTime ? Math.min(0.05, (now - lastTime) / 1000) : 0;
+  const raw = lastTime ? Math.min(0.05, (now - lastTime) / 1000) : 0;
+  if (lastTime) FX.perf(now - lastTime);
   lastTime = now;
   if (paused) { render(); requestAnimationFrame(loop); return; }
+  const dt = FX.tickTime(raw);          // 慢動作：遊戲時間縮放，特效層照跑
+  FX.update(raw);
   if (hitStop > 0) {
-    hitStop = Math.max(0, hitStop - dt);
-  } else if (state === 'playing' || state === 'won') {
+    hitStop = Math.max(0, hitStop - raw);
+  } else if (state === 'playing' || state === 'won' || state === 'lost') {
     update(dt);
   }
   Tutorial.tick(dt);
@@ -25,11 +28,11 @@ function setPaused(on) {
   if (on) {
     mouse.down = false;              // 免得恢復時立刻揮一刀
     el.classList.remove('hidden');
-    Sound.stopMusic(); Sound.uiBack();
+    Sound.setMuffled(true); Sound.uiBack();   // 音樂悶掉而不是停掉
   } else {
     el.classList.add('hidden');
     Sound.ui();
-    if (currentMap) Sound.startMusic(currentMap.theme);
+    Sound.setMuffled(false);
   }
 }
 
@@ -40,8 +43,8 @@ function quitMatch() {
   document.getElementById('pause-screen').classList.add('hidden');
   document.getElementById('hud').classList.add('hidden');
   document.body.classList.remove('playing');
-  Sound.stopMusic(); Sound.uiBack();
-  Tutorial.stop();
+  Sound.setMuffled(false); Sound.uiBack(); Sound.setIntensity(0); Sound.startMusic('menu');
+  Tutorial.stop(); FX.reset();
   state = 'title';
   enemies = []; projectiles = []; particles = []; zones = []; dmgTexts = []; rings = [];
   selectedHero = null; selectedMode = null;
@@ -103,13 +106,18 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   document.getElementById('end-screen').classList.add('hidden');
   document.getElementById('title-screen').classList.remove('hidden');
   selectedHero = null; selectedMode = null;
-  Tutorial.stop();
+  Tutorial.stop(); FX.reset();
+  Sound.setIntensity(0); Sound.startMusic('menu');
   UI.renderTitleMeta();
 });
 
 // audio: first-gesture unlock + toggle buttons
 (function () {
-  const unlock = () => { Sound.init(); Sound.resume(); };
+  const unlock = () => {
+    Sound.init(); Sound.resume();
+    // 第一次互動就讓選單音樂淡入（瀏覽器要求使用者手勢後才能出聲）
+    if (state !== 'playing' && !Sound.currentTheme()) { Sound.setIntensity(0); Sound.startMusic('menu'); }
+  };
   ['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.addEventListener(ev, unlock));
   const sfxBtn = document.getElementById('sfx-toggle'), musBtn = document.getElementById('music-toggle');
   if (sfxBtn) sfxBtn.addEventListener('click', () => { Sound.init(); Sound.resume(); const on = Sound.toggleSfx(); sfxBtn.classList.toggle('off', !on); if (on) Sound.ui(); });
@@ -386,6 +394,23 @@ window.PlayerName = PlayerName;   // top-level const 不會自動掛上 window
   on('resume-btn',   () => setPaused(false));
   on('quit-btn',     quitMatch);
   ['howto-back', 'ach-back', 'shop-back'].forEach(id => on(id, () => { Sound.uiBack(); UI.backToTitle(); }));
+})();
+
+// 標題頁飄浮火星（純 CSS 動畫，這裡只負責生成節點）
+(function () {
+  const ts = document.getElementById('title-screen');
+  if (!ts || FX.reduced) return;
+  const wrap = document.createElement('div'); wrap.className = 'embers'; wrap.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < 16; i++) {
+    const e = document.createElement('i');
+    e.style.left = (4 + Math.random() * 92) + '%';
+    e.style.animationDuration = (7 + Math.random() * 7) + 's';
+    e.style.animationDelay = (-Math.random() * 12) + 's';
+    e.style.setProperty('--sz', (2 + Math.random() * 3).toFixed(1) + 'px');
+    e.style.setProperty('--drift', ((Math.random() - 0.5) * 80).toFixed(0) + 'px');
+    wrap.appendChild(e);
+  }
+  ts.insertBefore(wrap, ts.firstChild);
 })();
 
 requestAnimationFrame(loop);

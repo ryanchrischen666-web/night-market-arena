@@ -331,10 +331,22 @@ function drawCharacter(c, isPlayer) {
   const bobY = -breathe * R * 0.05 - mv * bounce * R * 0.12;
   const rot = Math.sin(at * 15 + ph) * 0.06 * mv;
   if ((c.hitFlash || 0) > 0) { const k = c.hitFlash / 0.15; sx *= 1 + 0.18 * k; sy *= 1 - 0.18 * k; }
+  // 進場：從天而降 + 落地壓扁回彈
+  let dropY = 0, spawnA = 1;
+  if ((c.spawnT || 0) > 0) {
+    const total = c._spawnTotal || (c._spawnTotal = c.spawnT);
+    const k = 1 - c.spawnT / total;                 // 0 → 1
+    if (k < 0.7) { const f = k / 0.7; dropY = -(1 - f * f) * 180; spawnA = Math.min(1, f * 3); sx *= 0.85; sy *= 1.15; }
+    else { const f = (k - 0.7) / 0.3; const sq = Math.sin(f * Math.PI); sx *= 1 + sq * 0.3; sy *= 1 - sq * 0.3; }
+  } else if (c._spawnTotal && (c._spawnLand === undefined)) {
+    c._spawnLand = 1;
+  }
+  if (spawnA < 1) ctx.globalAlpha *= spawnA;
 
   // ground glow (team color) + shadow
   const ringCol = isPlayer ? 'rgba(255,204,107,' : 'rgba(214,40,40,';
   const fy = c.y + c.r * 0.7;
+  if (dropY < -2) { ctx.save(); ctx.globalAlpha = 0.5 * spawnA; }   // 落下中：地上先出現著陸陰影
   const rg = ctx.createRadialGradient(c.x, fy, 2, c.x, fy, c.r * 1.7);
   rg.addColorStop(0, ringCol + '0)');
   rg.addColorStop(0.7, ringCol + '0.26)');
@@ -345,11 +357,12 @@ function drawCharacter(c, isPlayer) {
   ctx.beginPath(); ctx.ellipse(c.x, fy + c.r * 0.02, c.r * 0.95 * sx, c.r * 0.34, 0, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = ringCol + '0.55)'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.ellipse(c.x, fy + c.r * 0.02, c.r * 1.2, c.r * 0.5, 0, 0, Math.PI * 2); ctx.stroke();
+  if (dropY < -2) ctx.restore();
 
   // body (anchored at feet)
   ctx.save();
   ctx.translate(c.x, fy);
-  ctx.translate(0, bobY);
+  ctx.translate(0, bobY + dropY);
   ctx.rotate(rot);
   ctx.scale(fd * sx, sy);
   drawHeroArt(ctx, c.id, R, at, c.blink || 0);
