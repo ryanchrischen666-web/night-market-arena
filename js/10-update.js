@@ -374,22 +374,28 @@ function update(dt) {
         // --- reactive dodge: sidestep incoming player shots ---
         let dodgeX = 0, dodgeY = 0, dodging = false;
         e.dodgeCd = (e.dodgeCd || 0) - dt;
-        if (e.dodgeCd <= 0) {
+        e.dodgeT = (e.dodgeT || 0) - dt;
+        if (e.dodgeT > 0) { dodging = true; dodgeX = Math.cos(e._dodgeAng); dodgeY = Math.sin(e._dodgeAng); }
+        else if (e.dodgeCd <= 0) {
+          // 每顆子彈只擲一次骰子（_seen），而且要等子彈飛到 110px 內才反應——快槍打得到
           for (const pr of projectiles) {
             if (pr.team === 'enemy') continue;
+            if (pr._seen && pr._seen.has(e)) continue;
             const pdx = e.x - pr.x, pdy = e.y - pr.y, pd = Math.hypot(pdx, pdy);
-            if (pd > 165 || pd < 1) continue;
+            if (pd > 110 || pd < 1) continue;
             const prAng = Math.atan2(pr.vy, pr.vx), toEAng = Math.atan2(pdy, pdx);
             const diff = Math.abs(((prAng - toEAng + Math.PI*3) % (Math.PI*2)) - Math.PI);
-            if (diff < 0.45 && Math.random() < (e.dodgeSkill || 0.6)) {
-              if (!e._dodgeSide) e._dodgeSide = Math.random() < 0.5 ? 1 : -1;
+            if (diff > 0.4) continue;
+            (pr._seen = pr._seen || new Set()).add(e);
+            if (Math.random() < (e.dodgeSkill || 0.3)) {
+              e._dodgeSide = Math.random() < 0.5 ? 1 : -1;
               dodgeX = Math.cos(prAng + Math.PI/2 * e._dodgeSide);
               dodgeY = Math.sin(prAng + Math.PI/2 * e._dodgeSide);
-              e.dodgeCd = 0.55; e._dodgeAng = Math.atan2(dodgeY, dodgeX); dodging = true; break;
+              e.dodgeT = 0.28; e.dodgeCd = rand(1.4, 2.2); e._dodgeAng = Math.atan2(dodgeY, dodgeX); dodging = true;
             }
+            break;
           }
-          if (!dodging) e._dodgeSide = 0;
-        } else { dodging = true; dodgeX = Math.cos(e._dodgeAng); dodgeY = Math.sin(e._dodgeAng); }
+        }
 
         // --- separation: spread out instead of stacking ---
         let sepX = 0, sepY = 0;
@@ -401,12 +407,12 @@ function update(dt) {
 
         // --- role-based movement intent ---
         let mvX = 0, mvY = 0;
-        if (e.strafeT === undefined || (e.strafeT -= dt) <= 0) { e.strafeDir = Math.random() < 0.5 ? 1 : -1; e.strafeT = rand(0.7, 1.7); }
+        if (e.strafeT === undefined || (e.strafeT -= dt) <= 0) { e.strafeDir = Math.random() < 0.5 ? 1 : -1; e.strafeT = rand(0.9, 2.2); }
         if (e.ranged) {
           const ideal = e.atkRange * 0.78, tooClose = e.atkRange * 0.5;
           if (d > ideal + 25) { mvX += Math.cos(toP); mvY += Math.sin(toP); }
           else if (d < tooClose) { mvX -= Math.cos(toP) * 1.3; mvY -= Math.sin(toP) * 1.3; }
-          const strafe = toP + Math.PI/2 * e.strafeDir, sAmt = (d < ideal + 35) ? 0.95 : 0.45;
+          const strafe = toP + Math.PI/2 * e.strafeDir, sAmt = (d < ideal + 35) ? 0.6 : 0.3;
           mvX += Math.cos(strafe) * sAmt; mvY += Math.sin(strafe) * sAmt;
         } else {
           if (e.retreatT > 0) { e.retreatT -= dt; mvX -= Math.cos(toP) * 0.9; mvY -= Math.sin(toP) * 0.9; }
@@ -423,7 +429,7 @@ function update(dt) {
         const ml = Math.hypot(mvX, mvY);
         if (ml > 0.01) {
           mvX /= ml; mvY /= ml;
-          let sp = e.speed * speedMul * 60 * dt; if (dodging) sp *= 1.35;
+          let sp = e.speed * speedMul * 60 * dt; if (dodging) sp *= 1.1;
           e.x += mvX * sp; e.y += mvY * sp;
         }
 
@@ -527,7 +533,7 @@ function update(dt) {
       for (const e of enemies) {
         if (e.dead) continue;
         if (p._hits && p._hits.has(e)) continue;
-        if (Math.hypot(e.x - p.x, e.y - p.y) < e.r + p.r) {
+        if (Math.hypot(e.x - p.x, e.y - p.y) < e.r + p.r + 4) {
           let dmg = p.dmg;
           if (p.owner && p.owner.atkBuff > 0) dmg *= p.owner.atkBuffMul;
           const _pm = Math.hypot(p.vx, p.vy) || 1, _kbf = Math.min(6.5, 1.6 + dmg * 0.06);
@@ -586,9 +592,22 @@ function updateMusicIntensity() {
   if (n !== _musInt) { _musInt = n; Sound.setIntensity(n); }
 }
 
+// 瞄準輔助：準星在敵人 10° 內就吸過去（只對遠程普攻，不碰技能）
+function aimAssist(ang, range) {
+  let best = null, bd = 0.175;
+  for (const e of enemies) {
+    if (e.dead || (e.remote && !e.hostileNet) || (e.spawnT || 0) > 0) continue;
+    const d = dist(player, e); if (d > range * 1.15 || d < 30) continue;
+    const diff = Math.abs(((angleTo(player, e) - ang + Math.PI*3) % (Math.PI*2)) - Math.PI);
+    if (diff < bd) { bd = diff; best = e; }
+  }
+  return best ? angleTo(player, best) : ang;
+}
+
 function fireBasicAttack() {
   Tutorial.onAttack();
-  const ang = angleTo(player, mouse);
+  let ang = angleTo(player, mouse);
+  if (player.atkRange >= 100) ang = aimAssist(ang, player.atkRange);
   if (window.NetMatch && NetMatch.active && player === players[0])
     NetMatch.sendAttack(ang, player.atkBuff > 0 ? player.atkBuffMul : 1, player.burnNext > 0);
   if (player.atkRange < 100) {

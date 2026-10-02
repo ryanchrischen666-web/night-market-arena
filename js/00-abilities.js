@@ -234,8 +234,9 @@ function leadAim(e, target, projSpeed, skill = 0.7) {
     const t = Math.hypot(ax - e.x, ay - e.y) / projSpeed;
     ax = target.x + tvx * t; ay = target.y + tvy * t;
   }
+  if (Math.random() < 0.3) skill *= 0.3;   // 偶爾就是瞄你現在站的地方
   const bx = target.x + (ax - target.x) * skill;
   const by = target.y + (ay - target.y) * skill;
-  return Math.atan2(by - e.y, bx - e.x) + rand(-0.05, 0.05) * (1.2 - skill);
+  return Math.atan2(by - e.y, bx - e.x) + rand(-0.11, 0.11) * (1.3 - skill);
 }
 

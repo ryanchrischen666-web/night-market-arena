@@ -71,16 +71,17 @@ function spawnEnemyHero(id, x, y, modeMul) {
     dmg: h.atkDmg * 0.85,  // AI does slightly less damage than player baseline
     dmgMul: modeMul.dmgMul,
     atkRange: h.atkRange,
-    atkCd: h.atkCd * 1.3,  // AI fires a bit slower than the player
+    atkCd: h.atkCd * 1.45, // AI fires slower than the player
     ranged: h.atkRange > 100,
     atkTimer: rand(0.3, 1.0),
     aiSpecial: h.aiSpecial,
     aiSpecialCd: h.aiSpecialCd,
     aiSpecialTimer: rand(2, 4),
-    aimSkill: clamp(0.55 + (modeMul.dmgMul - 0.75) * 0.55, 0.5, 0.85),
-    dodgeSkill: clamp(0.45 + (modeMul.dmgMul - 0.75) * 0.6, 0.4, 0.78),
-    strafeDir: Math.random() < 0.5 ? 1 : -1, strafeT: rand(0.5, 1.5),
-    retreatT: 0, dodgeCd: 0, _dodgeSide: 0, _dodgeAng: 0, lastSeen: null,
+    // 瞄準／閃避技巧：1v1 最高、1v3 最低。之前 1v1 幾乎每發都預判、每顆都側閃，小孩打不到
+    aimSkill: clamp(0.3 + (modeMul.dmgMul - 0.75) * 0.5, 0.25, 0.55),
+    dodgeSkill: clamp(0.18 + (modeMul.dmgMul - 0.75) * 0.4, 0.15, 0.38),
+    strafeDir: Math.random() < 0.5 ? 1 : -1, strafeT: rand(0.9, 2.2),
+    retreatT: 0, dodgeCd: 0, dodgeT: 0, _dodgeSide: 0, _dodgeAng: 0, lastSeen: null,
     vx: 0, vy: 0,
     stun: 0, frozen: 0, slow: 0, slowMul: 1,
     ccDr: 0, ccDrTimer: 0,
