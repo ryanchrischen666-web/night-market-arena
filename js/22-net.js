@@ -32,33 +32,67 @@ const NetMatch = (() => {
 
   const myId = () => Online.id;
 
-  function note(msg) {
+  // 房間訊息：寫進面板（不會被每秒重繪洗掉）；重要的同時跳出畫面中央提示
+  function note(msg, kind) {
     console.log('[NET]', msg);
-    const el = document.querySelector('#online-panel .om');
-    if (el) el.textContent = msg ? '[房間] ' + msg : '';
+    if (window.Online && Online.flash) Online.flash(msg ? '[房間] ' + msg : '', kind === 'error' ? 9000 : 6000, kind);
   }
+  function setBusy(v) { busy = v; if (window.Online) Online.render(); }
+  let busy = false;
 
   // ---------- 房間建立 / 加入 ----------
-  function createRoom() {
-    if (ch) return;
-    code = String(1000 + Math.floor(Math.random() * 9000));
-    iAmHost = true;
-    connect();
+  // 先確定大廳連線好了（Supabase 元件載入＋伺服器有回應），才開房間；失敗就明講原因
+  async function ensureOnline() {
+    if (!window.Online || !Online.enabled()) { note('這個版本沒有設定連線伺服器', 'error'); return false; }
+    if (Online.status === 'online' && Online.client) return true;
+    note('正在連線伺服器…', 'info');
+    try { await Online.ready(9000); return true; }
+    catch (e) { note('連不上連線伺服器：' + (e && e.message ? e.message : '未知錯誤'), 'error'); return false; }
   }
-  function joinRoom(c) {
-    if (ch) return;
+  async function createRoom() {
+    if (ch) { reopen(); return; }
+    if (busy) return;
+    setBusy(true);
+    try {
+      if (!(await ensureOnline())) return;
+      code = String(1000 + Math.floor(Math.random() * 9000));
+      iAmHost = true;
+      note('建立房間 ' + code + '…', 'info');
+      connect();
+    } finally { if (!ch) setBusy(false); }
+  }
+  async function joinRoom(c) {
+    if (ch) { reopen(); return; }
+    if (busy) return;
     c = String(c || '').trim();
-    if (!/^\d{4}$/.test(c)) { note('代號要是 4 位數字'); return; }
-    code = c; iAmHost = false;
-    connect();
+    if (!/^\d{4}$/.test(c)) { note('代號要是 4 位數字', 'error'); return; }
+    setBusy(true);
+    try {
+      if (!(await ensureOnline())) return;
+      code = c; iAmHost = false;
+      note('尋找房間 ' + code + '…', 'info');
+      connect();
+    } finally { if (!ch) setBusy(false); }
+  }
+  // 已經在房間裡（例如不小心回到標題）：直接回房間畫面
+  function reopen() {
+    if (!ch) return;
+    if (inMatch && state === 'playing') return;
+    if (lobbyOpen || hostSeen() || iAmHost) openLobby();
   }
 
+  let subTimer = null;
   function connect() {
     me = { team: null, hero: null, ready: false };
     matchNo = 0; inMatch = false; matchOver = false;
     ch = Online.client.channel('room:' + code, {
       config: { broadcast: { self: false }, presence: { key: myId() } }
     });
+    const myCh = ch;
+    clearTimeout(subTimer);
+    subTimer = setTimeout(() => {   // 房間頻道 10 秒沒接通：放棄並講清楚
+      if (ch === myCh && !lobbyOpen && !inMatch) { note('房間連線逾時，請再試一次', 'error'); cleanup(); }
+    }, 10000);
     ch.on('presence', { event: 'sync' }, onPresence)
       .on('presence', { event: 'leave' }, ({ key }) => onLeave(key))
       .on('broadcast', { event: 'lobby' }, ({ payload }) => {
@@ -87,10 +121,12 @@ const NetMatch = (() => {
         if (pr && !pr.gone) { pr.gone = true; spawnParticles(pr.x, pr.y, 14, '#bbbbbb', { speed: 3, life: 0.5, size: 3 }); }
       })
       .subscribe(async (s) => {
-        note('房間連線：' + s);
+        if (ch !== myCh) return;
+        console.log('[NET] 房間連線：' + s);
         if (s === 'SUBSCRIBED') {
+          clearTimeout(subTimer);
           await track();
-          if (iAmHost) openLobby();
+          if (iAmHost) { setBusy(false); openLobby(); }
           else {
             try { ch.send({ type: 'broadcast', event: 'knock', payload: { u: myId() } }); } catch (e) {}
             let waited = 0;
@@ -98,17 +134,19 @@ const NetMatch = (() => {
               waited += 300;
               if (!ch) { clearInterval(poll); return; }
               if (hostSeen()) {
-                clearInterval(poll);
-                if (roomHeadcount() > 6) { note('房間已滿（6 人）'); leaveRoom(); }
+                clearInterval(poll); setBusy(false);
+                if (roomHeadcount() > 6) { note('房間已滿（6 人）', 'error'); leaveRoom(); }
                 else openLobby();
-              } else if (waited >= 5000) {
+              } else if (waited >= 6000) {
                 clearInterval(poll);
-                note('找不到房間 ' + code + '（房主不在）'); leaveRoom();
+                note('找不到房間 ' + code + '（代號打錯，或房主已離開）', 'error'); leaveRoom();
               }
             }, 300);
           }
         } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') {
-          note('房間連線失敗'); cleanup();
+          clearTimeout(subTimer);
+          if (inMatch) { showMatchBanner('連線中斷', '房間連線出問題'); }
+          note('房間連線失敗（' + s + '），請再試一次', 'error'); leaveRoom();
         }
       });
     if (!sendTimer) sendTimer = setInterval(tick, SEND_MS);
@@ -166,7 +204,7 @@ const NetMatch = (() => {
     if (members.length > lastMemberCount) setTimeout(sendLobby, 250);   // 迎新
     lastMemberCount = members.length;
     if (lobbyOpen) {
-      if (!iAmHost && !hostSeen()) { note('房主離開了，房間解散'); leaveRoom(); return; }
+      if (!iAmHost && !hostSeen()) { note('房主離開了，房間解散', 'error'); leaveRoom(); return; }
       if (!iAmHost && members.length > 6) {
         const noHost = members.filter(m => !m.host).map(m => m.id).sort();
         const overflow = noHost.slice(5);            // 房主 + 5 人 = 6，超過的踢
@@ -199,6 +237,7 @@ const NetMatch = (() => {
     if (window.Online) Online.render();
   }
   function cleanup() {
+    clearTimeout(subTimer); setBusy(false);
     if (sendTimer) { clearInterval(sendTimer); sendTimer = null; }
     if (ch) { try { Online.client.removeChannel(ch); } catch (e) {} }
     ch = null; lobbyOpen = false; inMatch = false; matchOver = false;
@@ -715,7 +754,8 @@ const NetMatch = (() => {
   function refreshName() { track(); if (lobbyOpen) renderLobby(); }
 
   return {
-    createRoom, joinRoom, leaveRoom, refreshName,
+    createRoom, joinRoom, leaveRoom, refreshName, reopen,
+    get busy() { return busy; },
     sendAttack, sendCast, sendProp, sendDead, onLocalDeath,
     myDamageDealt, resetPeerDamage,
     _tickRemote,
