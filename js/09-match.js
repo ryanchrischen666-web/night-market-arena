@@ -198,6 +198,10 @@ function endGame(victory) {
   const heroId = players[0] ? players[0].id : selectedHero;
   const online = !!(window.NetMatch && NetMatch.inMatch);
   renderEndScreen({ victory, heroId, seconds, online });
+  const solo = !online && currentMode !== 'tutorial' && currentMode !== 'net';
+  document.getElementById('again-btn').classList.toggle('hidden', !solo);
+  document.getElementById('again-btn').textContent = victory ? '再來一場 · Again' : '再挑戰一次 · Retry';
+  document.getElementById('restart-btn').textContent = solo ? '換角色 · Change Hero' : '回首頁 · Home';
 
   // 結算獎勵：夜市幣 · 經驗 · 成就 · 最佳紀錄
   UI.showRewards(Progress.finishMatch({

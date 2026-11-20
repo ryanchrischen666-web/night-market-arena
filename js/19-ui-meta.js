@@ -30,6 +30,7 @@ const UI = (() => {
       `<div class="meta-coins"><b>${Progress.coins}</b> 夜市幣</div>` +
       (t ? `<div class="meta-title">${t.cn}</div>` : '') +
       (Save.persistent ? '' : `<div class="meta-warn">此瀏覽器無法存檔，紀錄只保留到關閉視窗</div>`);
+    if (typeof renderQuickBtn === 'function') renderQuickBtn();
   }
 
   // ---------- 怎麼玩 ----------

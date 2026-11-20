@@ -26,8 +26,20 @@ function renderHeroCards(mode) {
       <div class="hero-emoji"><canvas class="hero-cv" width="96" height="96"></canvas></div>
       <div class="hero-cn">${h.cn}</div>
       <div class="hero-name">${h.name}</div>
+      ${heroGridMode === 'select' && !locked ? `<button class="hero-info" aria-label="技能介紹" title="技能介紹 · Details">i</button>` : ''}
     `;
-    card.addEventListener('click', () => { Sound.ui(); openHeroDetail(id); });
+    card.addEventListener('click', (ev) => {
+      Sound.ui();
+      const info = ev.target.closest('.hero-info');
+      // 出戰模式：一點就選定、直接跳到模式（少一頁確認）。想看技能再點 ⓘ
+      if (heroGridMode === 'select' && !locked && !info && !(window.NetMatch && NetMatch.picking)) {
+        selectedHero = id;
+        card.classList.add('selected');
+        goToModeScreen();
+        return;
+      }
+      openHeroDetail(id);
+    });
     grid.appendChild(card);
     renderHeroIcon(card.querySelector('.hero-cv'), id);
   }
@@ -113,12 +125,11 @@ function setupModeSelect() {
   const cards = document.querySelectorAll('.mode-card');
   cards.forEach(card => {
     card.addEventListener('click', () => {
-      Sound.ui();
+      if (!selectedHero) return;
       cards.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
       selectedMode = card.dataset.mode;
-      document.getElementById('begin-btn').classList.remove('hidden');
-      updateVsPreview();
+      quickStart(selectedHero, selectedMode);
     });
   });
 }
@@ -141,6 +152,27 @@ function updateVsPreview() {
   preview.classList.add('show');
   // Stash so begin uses same opponents
   window.__previewedOpps = opps;
+}
+
+// 直接開打 + 記住這次的選擇（標題的「快速開戰」、結算的「同樣再來」都用它）
+function quickStart(hero, mode) {
+  if (!hero || !mode || !HEROES[hero] || !MODES[mode] || !ownedHero(hero)) return;
+  Sound.init(); Sound.resume(); Sound.ui();
+  selectedHero = hero; selectedMode = mode;
+  Save.d.lastHero = hero; Save.d.lastMode = mode; Save.save();
+  window.__previewedOpps = null;   // 每場重抽對手
+  document.getElementById('again-btn').classList.add('hidden');
+  startMatch(hero, mode, {});
+}
+
+// 標題頁：有上次紀錄就顯示一鍵開戰
+function renderQuickBtn() {
+  const b = document.getElementById('quick-btn');
+  if (!b) return;
+  const h = Save.d.lastHero, m = Save.d.lastMode;
+  const ok = h && m && HEROES[h] && MODES[m] && m !== 'tutorial' && m !== 'net' && ownedHero(h);
+  b.classList.toggle('hidden', !ok);
+  if (ok) b.innerHTML = `⚡ 快速開戰 <b>${HEROES[h].cn} · ${m === 'boss' ? '魔王' : m.toUpperCase()}</b><span>Quick Play</span>`;
 }
 
 function pickOpponents(playerId, count) {

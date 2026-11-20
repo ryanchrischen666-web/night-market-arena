@@ -94,21 +94,31 @@ document.getElementById('back-to-hero-btn').addEventListener('click', () => {
   document.getElementById('select-screen').classList.remove('hidden');
   resetHeroPick();
 });
-document.getElementById('begin-btn').addEventListener('click', () => {
-  if (!selectedHero || !selectedMode) return;
-  Sound.resume(); Sound.ui();
-  startMatch(selectedHero, selectedMode, {});
+document.getElementById('begin-btn').addEventListener('click', () => quickStart(selectedHero, selectedMode));
+document.getElementById('quick-btn').addEventListener('click', () => quickStart(Save.d.lastHero, Save.d.lastMode));
+// 結算：同英雄同模式直接再開一場（單機才有）
+document.getElementById('again-btn').addEventListener('click', () => {
+  document.getElementById('end-screen').classList.add('hidden');
+  Tutorial.stop();
+  quickStart(Save.d.lastHero, Save.d.lastMode);
 });
 document.getElementById('restart-btn').addEventListener('click', () => {
   Sound.ui();
+  const wasSolo = !(window.NetMatch && NetMatch.active) && currentMode !== 'tutorial' && currentMode !== 'net';
   if (window.NetMatch && NetMatch.active) NetMatch.leaveRoom();
   document.getElementById('rematch-btn').classList.add('hidden');
+  document.getElementById('again-btn').classList.add('hidden');
   document.getElementById('end-screen').classList.add('hidden');
-  document.getElementById('title-screen').classList.remove('hidden');
   selectedHero = null; selectedMode = null;
   Tutorial.stop(); FX.reset();
   Sound.setIntensity(0); Sound.startMusic('menu');
-  UI.renderTitleMeta();
+  if (wasSolo) {   // 單機打完：直接回選角（不用再從標題點進來）
+    document.getElementById('select-screen').classList.remove('hidden');
+    resetHeroPick(); renderHeroCards('select');
+  } else {
+    document.getElementById('title-screen').classList.remove('hidden');
+    UI.renderTitleMeta();
+  }
 });
 
 // audio: first-gesture unlock + toggle buttons
@@ -416,4 +426,5 @@ window.PlayerName = PlayerName;   // top-level const 不會自動掛上 window
 requestAnimationFrame(loop);
 setupModeSelect();
 UI.renderTitleMeta();
+renderQuickBtn();
 
