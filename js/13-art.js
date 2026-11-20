@@ -377,8 +377,9 @@ function drawCharacter(c, isPlayer) {
     if (c.shield > 0) { ctx.strokeStyle = `rgba(156,122,59,${0.6 + Math.sin(t * 6) * 0.2})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(c.x, c.y, c.r + 8, 0, Math.PI * 2); ctx.stroke(); }
   }
 
-  // HP bar + name (enemies)
-  const topY = c.y - c.r * 3.4;
+  // HP bar + name (enemies)：太靠近畫面上緣（會被 HUD 蓋住）就改畫在腳下
+  let topY = c.y - c.r * 3.4;
+  if (!isPlayer && topY < 64) topY = c.y + c.r * 1.75 + 14;
   if (!isPlayer) {
     const w = c.r * 2.6;
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(c.x - w / 2, topY, w, 5);

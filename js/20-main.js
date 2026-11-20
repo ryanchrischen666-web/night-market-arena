@@ -24,6 +24,7 @@ function setPaused(on) {
   if (on && window.NetMatch && NetMatch.inMatch) { showMatchBanner('連線中無法暫停', '對手不會等你！'); return; }
   if (state !== 'playing' || paused === on) return;
   paused = on;
+  document.body.classList.toggle('paused', on);   // 手機：暫停時收起搖桿與技能鈕，不擋暫停選單
   const el = document.getElementById('pause-screen');
   if (on) {
     mouse.down = false;              // 免得恢復時立刻揮一刀
@@ -39,7 +40,7 @@ function setPaused(on) {
 // 放棄這一場：不結算、不發獎勵，直接回標題
 function quitMatch() {
   if (window.NetMatch && NetMatch.active) NetMatch.leaveRoom();
-  paused = false;
+  paused = false; document.body.classList.remove('paused');
   document.getElementById('pause-screen').classList.add('hidden');
   document.getElementById('hud').classList.add('hidden');
   document.body.classList.remove('playing');

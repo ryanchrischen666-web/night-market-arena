@@ -1,0 +1,185 @@
+/* ============ v34 版面整理：不重疊、不出界、手機不用捲 ============
+   最後載入，覆寫前面各檔的版面規則。 */
+
+/* --- 所有選單：內容放得下就置中；放不下時從頂端開始排，可完整捲動（原本上緣會被切掉而且捲不到）--- */
+.screen { justify-content: center; justify-content: safe center; }
+.screen > * { flex-shrink: 0; }
+#title-screen > :first-child, #room-screen > :first-child { margin-top: 0; }
+#title-screen > :last-child, #room-screen > :last-child { margin-bottom: 0; }
+body.touch #title-screen, #room-screen { justify-content: center; justify-content: safe center; }
+
+/* --- 線上面板：窄一點，避開標題頁的按鈕列 --- */
+#online-panel { width: 180px; }
+
+/* --- 錯誤提示：小一點、貼上緣 --- */
+#net-toast { top: 12px; font-size: 14px; padding: 9px 16px; }
+
+/* --- HUD --- */
+#hp-name { top: 44px; left: 18px; font-size: 12px; }              /* 原本在血條上方，觸控裝置會被切掉 */
+.abilities { bottom: 28px; }                                       /* 技能名稱原本被畫面底邊切掉 */
+#hud.bossmode .match-info { display: none; }
+#boss-bar { left: 276px; right: 70px; width: auto; max-width: 520px; margin: 0 auto; transform: none; top: 12px; }
+body.touch #boss-bar { right: 110px; }
+.boss-bar-label { gap: 8px; white-space: nowrap; overflow: hidden; }
+
+/* --- 模式：四張卡一排，不用捲 --- */
+.modes-grid { grid-template-columns: repeat(4, 1fr); max-width: 860px; gap: 14px; }
+.mode-card { min-height: 0; padding: 20px 12px; }
+.mode-card.mode-boss { grid-column: auto; }
+.mode-num { font-size: 46px; }
+
+/* --- 房間：隊伍標題列放「加入」鈕；寬螢幕隊伍在上、選角在下 --- */
+.room-note { min-height: 16px; margin: -12px 0 4px; font-size: 11px; color: rgba(255,226,122,0.85); text-align: center; }
+.room-note.err { color: #ff8a7a; }
+.room-body { display: flex; flex-direction: column; align-items: center; }
+.room-team { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 8px; }
+.room-team h5 { margin: 0; }
+.room-team .room-join-team { margin: 0; padding: 3px 10px; }
+.room-team .room-join-team.hidden { display: block !important; visibility: hidden; }   /* 留位子，版面不跳 */
+.room-team ul { grid-column: 1 / -1; margin: 6px 0 0; min-height: 0; }
+.room-picker { display: grid; grid-template-columns: repeat(5, 1fr); max-width: 520px; }
+.room-actions { flex-wrap: wrap; }
+.room-actions .btn { margin-top: 0; }
+
+/* --- 結算 --- */
+.end-actions .btn { margin-top: 0; }
+
+/* ============ 矮螢幕（橫向手機、小筆電視窗）============ */
+@media (max-height: 540px) {
+  .select-title { font-size: 20px; letter-spacing: 3px; }
+  .select-sub { font-size: 10px; letter-spacing: 3px; margin: 2px 0 6px; }
+  .screen { padding: 8px 10px; }
+
+  /* 標題 */
+  #title-screen .tagline { margin: 2px 0; }
+
+  /* 怎麼玩／成就／攤位：返回鈕移到左上角，內容一頁放完 */
+  #howto-back, #ach-back, #shop-back { position: absolute; top: 8px; left: 8px; margin: 0; padding: 6px 12px; font-size: 11px; letter-spacing: 1px; }
+  .ht-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; width: 96vw; max-width: 900px; margin-top: 4px; }
+  .ht-card { padding: 6px 9px; }
+  .ht-ic { font-size: 15px; margin-bottom: 1px; display: inline; margin-right: 4px; }
+  .ht-h { display: inline; font-size: 12px; }
+  .ht-b { font-size: 10px; line-height: 1.45; margin-top: 3px; }
+  .ach-grid { grid-template-columns: repeat(4, 1fr); gap: 5px; width: 96vw; max-width: 900px; margin-top: 2px; }
+  .ach { padding: 5px 6px; gap: 6px; }
+  .ach-ic { flex-basis: 24px; height: 24px; font-size: 12px; }
+  .ach-n { font-size: 11px; } .ach-n span { display: none; }
+  .ach-d { font-size: 9px; line-height: 1.3; }
+  .shop-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; width: 96vw; max-width: 900px; margin-top: 2px; }
+  .shop-item { padding: 6px 5px; }
+  .shop-item .sw { width: 26px !important; height: 26px !important; margin: 0 auto 3px !important; }
+  .shop-item .sw-t { width: auto !important; height: auto !important; padding: 3px 6px; font-size: 10px; }
+  .shop-item .si-n { font-size: 12px; } .shop-item .si-n span { display: none; }
+  .shop-item .si-b { font-size: 9.5px; margin-top: 2px; }
+
+  /* 房間：左邊兩隊、右邊選角＋按鈕，一頁放完 */
+  .room-note { margin: -4px 0 2px; }
+  .room-body { flex-direction: row; align-items: flex-start; gap: 12px; width: 96vw; max-width: 860px; justify-content: center; }
+  .room-teams { flex-direction: column; gap: 6px; margin: 0; align-items: stretch; }
+  .room-team { width: min(250px, 38vw); padding: 5px 9px; }
+  .room-team h5 { font-size: 13px; }
+  .room-team li { padding: 2px 4px; font-size: 11px; }
+  .room-side { flex: 1; max-width: 460px; }
+  .room-picker { grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 0 0 6px; max-width: none; }
+  .room-hero { padding: 2px 3px; font-size: 10px; }
+  .room-hero span { font-size: 16px; }
+  .room-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .room-actions .btn { padding: 7px 8px; font-size: 12px; letter-spacing: 1px; width: 100%; }
+  .room-actions .btn.hidden { display: none !important; }
+
+  /* 結算：數據改兩欄、按鈕縮小 */
+  #end-screen { padding-top: 4px; padding-bottom: 4px; }
+  .end-brand { font-size: 30px; line-height: 1.05; }
+  .end-brand::after { margin-top: 3px; }
+  #end-player { margin: 2px 0 0; font-size: 13px; }
+  .end-stat-rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 22px; min-width: min(460px, 86vw); margin-top: 4px; }
+  .end-advice { margin-top: 4px; }
+  .end-actions { margin-top: 6px; }
+  .end-actions .btn { padding: 7px 22px; font-size: 13px; letter-spacing: 2px; }
+  #record-stamp { top: 8px; left: 3%; transform-origin: top left; }
+  #toast-wrap { top: 8px; }
+  .toast { transform-origin: top right; }
+
+  /* 模式 */
+  .mode-card { padding: 10px 8px; }
+  .mode-num { font-size: 28px; }
+}
+
+/* 更矮（iPhone SE 橫向）：標題再縮 */
+@media (max-height: 400px) {
+  #title-screen h1.title { font-size: 32px; }
+  #title-screen .tagline { display: none; }
+  .end-brand { font-size: 24px; }
+  .end-advice { font-size: 10px; line-height: 1.4; padding: 2px 10px; }
+}
+
+/* ============ 第二輪：稽核剩下的擠壓點 ============ */
+#online-panel { width: 166px; right: 10px; }
+body.paused #touch-controls { display: none !important; }
+
+/* 窄舞台（小手機）：血條、上方資訊縮短，避免互壓 */
+@media (max-width: 760px) {
+  .hp-bar { width: 180px; }
+  .match-info { padding: 5px 10px; font-size: 10px; letter-spacing: 2px; }
+  .match-info .num { font-size: 13px; }
+  #boss-bar { left: 210px; }
+}
+
+/* 標題：不夠高的桌機視窗（小筆電）也一頁放完 */
+@media (max-height: 700px) and (min-height: 541px) {
+  h1.title { font-size: 66px; }
+  .subtitle { margin-top: 10px; }
+  .tagline { margin-top: 8px; }
+  #title-screen .btn { margin-top: 16px; padding: 12px 34px; }
+  #title-screen .btn.btn-quick { margin-top: 10px; padding: 7px 22px; }
+  .title-subbtns { margin-top: 12px; }
+  .meta-bar { margin-top: 10px; }
+  .btn-mini { padding: 6px 11px; }
+  .select-title { font-size: 26px; }
+  .select-sub { margin-bottom: 12px; }
+}
+
+@media (max-height: 540px) {
+  /* 付款視窗：兩欄，一眼看完不用捲 */
+  .pay-box { width: min(620px, 94vw); padding: 10px 16px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
+  .pay-warn, .pay-title, .pay-actions { grid-column: 1 / -1; }
+  .pay-warn { font-size: 11px; padding: 5px 8px; margin-bottom: 4px; }
+  .pay-title { font-size: 15px; margin-bottom: 0; }
+  .pay-box label { margin: 4px 0 1px; font-size: 11px; }
+  .pay-box input { padding: 5px 8px; font-size: 13px; }
+  .pay-actions { margin-top: 8px; }
+  .pay-actions .btn { margin: 0; padding: 7px 20px; font-size: 13px; }
+
+  /* 成就通知：縮成一行小膠囊，放在 ⚙ 下方、右側邊欄，不壓到數據 */
+  #toast-wrap { top: 50px; right: 8px; gap: 5px; }
+  .toast { min-width: 0; width: 132px; padding: 4px 8px; gap: 6px; border-width: 1.5px; }
+  .t-ic { flex-basis: 20px; height: 20px; font-size: 11px; border-radius: 5px; }
+  .t-h { display: none; }
+  .t-n { font-size: 11px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-n span { display: none; }
+  .end-stat-rows { min-width: 0; width: min(380px, 56vw); column-gap: 16px; }
+  .end-stat-rows .label { font-size: 11px; letter-spacing: 0.1em; }
+  .end-stat-rows .value { font-size: 14px; }
+  #end-screen .rewards { margin-top: 4px; }
+
+  /* 新紀錄印章：縮小、整顆在畫面內 */
+  #record-stamp { top: 18px; left: 2%; font-size: 15px; padding: 6px 12px; border-width: 2px; }
+  #record-stamp small { font-size: 9.5px; margin-top: 1px; }
+
+  /* 暫停框 */
+  .pause-box { padding: 14px 26px; }
+  .pause-title { font-size: 30px; }
+  .pause-box .btn { margin-top: 8px; padding: 8px 24px; font-size: 13px; }
+}
+
+#title-screen { padding-top: 14px; padding-bottom: 14px; }
+
+/* HUD 讓位：角色走到底下時變半透明 */
+#hud .hud-dim, #tut-panel.hud-dim { opacity: 0.28; transition: opacity 0.18s ease; }
+.hp-bar, .match-info, .abilities, .controls-hint, #boss-bar, #tut-panel, #pause-btn, #hp-name { transition: opacity 0.25s ease; }
+.ability { background: rgba(0,0,0,0.55); }
+
+/* 小細節 */
+#mode-screen .sel-actions { margin-top: 14px; }
+body.touch .pause-hint { display: none; }
+.pay-row { align-items: flex-end; }

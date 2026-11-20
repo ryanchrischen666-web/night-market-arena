@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Night Market Arena</title>
-<link rel="stylesheet" href="css/base.css?v33">
-<link rel="stylesheet" href="css/screens.css?v33">
-<link rel="stylesheet" href="css/hud.css?v33">
-<link rel="stylesheet" href="css/mobile.css?v33">
-<link rel="stylesheet" href="css/meta.css?v33">
+<link rel="stylesheet" href="css/base.css?v34">
+<link rel="stylesheet" href="css/screens.css?v34">
+<link rel="stylesheet" href="css/hud.css?v34">
+<link rel="stylesheet" href="css/mobile.css?v34">
+<link rel="stylesheet" href="css/meta.css?v34">
+<link rel="stylesheet" href="css/layout.css?v34">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#140a22">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -195,17 +196,22 @@
   <!-- 房間大廳 -->
   <div id="room-screen" class="screen hidden">
     <div class="select-title">房間 <span id="room-code-big">0000</span></div>
-    <div class="select-sub">把 4 位數代號告訴朋友，他們按「加入房間」輸入就能進來</div>
-    <div class="room-teams">
-      <div class="room-team rt-red"><h5>🔴 紅隊 RED</h5><ul id="team0-list"></ul><button class="btn-mini room-join-team" data-team="0">加入紅隊<span>Join Red</span></button></div>
-      <div class="room-team rt-blue"><h5>🔵 藍隊 BLUE</h5><ul id="team1-list"></ul><button class="btn-mini room-join-team" data-team="1">加入藍隊<span>Join Blue</span></button></div>
-    </div>
-    <div class="room-picker" id="room-picker"></div>
-    <div class="room-actions">
-      <button class="btn" id="room-ready-btn">準備 · Ready</button>
-      <button class="btn hidden" id="room-start-btn">開始遊戲 · Start</button>
-      <button class="btn btn-secondary" id="room-copy-btn">📋 複製邀請連結</button>
-      <button class="btn btn-secondary" id="room-leave-btn">離開房間 · Leave</button>
+    <div class="select-sub">把代號告訴朋友，他們按「加入房間」輸入就能進來</div>
+    <div class="room-note" id="room-note"></div>
+    <div class="room-body">
+      <div class="room-teams">
+        <div class="room-team rt-red"><h5>🔴 紅隊 RED</h5><button class="btn-mini room-join-team" data-team="0">加入<span>Join</span></button><ul id="team0-list"></ul></div>
+        <div class="room-team rt-blue"><h5>🔵 藍隊 BLUE</h5><button class="btn-mini room-join-team" data-team="1">加入<span>Join</span></button><ul id="team1-list"></ul></div>
+      </div>
+      <div class="room-side">
+        <div class="room-picker" id="room-picker"></div>
+        <div class="room-actions">
+          <button class="btn" id="room-ready-btn">準備 · Ready</button>
+          <button class="btn hidden" id="room-start-btn">開始遊戲 · Start</button>
+          <button class="btn btn-secondary" id="room-copy-btn">📋 複製邀請連結</button>
+          <button class="btn btn-secondary" id="room-leave-btn">離開房間 · Leave</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -252,30 +258,30 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
 </script>
-<script src="js/00-abilities.js?v33"></script>
-<script src="js/01-heroes.js?v33"></script>
-<script src="js/02-modes.js?v33"></script>
-<script src="js/03-state.js?v33"></script>
-<script src="js/04-input.js?v33"></script>
-<script src="js/05-util.js?v33"></script>
-<script src="js/05b-fx.js?v33"></script>
-<script src="js/06-sound.js?v33"></script>
-<script src="js/07-enemy-ai.js?v33"></script>
-<script src="js/08-ui-select.js?v33"></script>
-<script src="js/09-match.js?v33"></script>
-<script src="js/10-update.js?v33"></script>
-<script src="js/11-map.js?v33"></script>
-<script src="js/12-render.js?v33"></script>
-<script src="js/13-art.js?v33"></script>
-<script src="js/14-boss.js?v33"></script>
-<script src="js/15-draw.js?v33"></script>
-<script src="js/16-save.js?v33"></script>
-<script src="js/17-progress.js?v33"></script>
-<script src="js/18-tutorial.js?v33"></script>
-<script src="js/19-ui-meta.js?v33"></script>
-<script src="js/20-main.js?v33"></script>
-<script src="js/21-online.js?v33"></script>
-<script src="js/22-net.js?v33"></script>
+<script src="js/00-abilities.js?v34"></script>
+<script src="js/01-heroes.js?v34"></script>
+<script src="js/02-modes.js?v34"></script>
+<script src="js/03-state.js?v34"></script>
+<script src="js/04-input.js?v34"></script>
+<script src="js/05-util.js?v34"></script>
+<script src="js/05b-fx.js?v34"></script>
+<script src="js/06-sound.js?v34"></script>
+<script src="js/07-enemy-ai.js?v34"></script>
+<script src="js/08-ui-select.js?v34"></script>
+<script src="js/09-match.js?v34"></script>
+<script src="js/10-update.js?v34"></script>
+<script src="js/11-map.js?v34"></script>
+<script src="js/12-render.js?v34"></script>
+<script src="js/13-art.js?v34"></script>
+<script src="js/14-boss.js?v34"></script>
+<script src="js/15-draw.js?v34"></script>
+<script src="js/16-save.js?v34"></script>
+<script src="js/17-progress.js?v34"></script>
+<script src="js/18-tutorial.js?v34"></script>
+<script src="js/19-ui-meta.js?v34"></script>
+<script src="js/20-main.js?v34"></script>
+<script src="js/21-online.js?v34"></script>
+<script src="js/22-net.js?v34"></script>
 
 
 

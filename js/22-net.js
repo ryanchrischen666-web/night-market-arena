@@ -36,6 +36,8 @@ const NetMatch = (() => {
   function note(msg, kind) {
     console.log('[NET]', msg);
     if (window.Online && Online.flash) Online.flash(msg ? '[房間] ' + msg : '', kind === 'error' ? 9000 : 6000, kind);
+    const rn = document.getElementById('room-note');
+    if (rn) { rn.textContent = msg || ''; rn.classList.toggle('err', kind === 'error'); }
   }
   function setBusy(v) { busy = v; if (window.Online) Online.render(); }
   let busy = false;
@@ -354,7 +356,7 @@ const NetMatch = (() => {
       jb.classList.toggle('hidden', mine.team === t || members_.filter(m => m.team === t).length >= 3);
     }
     const idle = members_.filter(m => m.team == null);
-    note((idle.length ? '未選隊：' + idle.map(m => esc(m.name)).join('、') + ' · ' : '') + '房號 ' + code);
+    note(idle.length ? '還沒選隊：' + idle.map(m => esc(m.name)).join('、') : '');
     // 我的英雄高亮
     document.querySelectorAll('.room-hero').forEach(b => b.classList.toggle('selected', b.dataset.id === me.hero));
     // 按鈕狀態

@@ -35,13 +35,15 @@ function startMatch(heroId, mode, opts = {}) {
   const quick = (mode === 'net' || mode === 'tutorial');
   player.spawnT = quick ? 0.25 : 0.45;
   if (!quick) enemies.forEach((e, i) => { e.spawnT = (e.isBoss ? 0.85 : 0.55) + i * 0.12; });
+  if (mode !== 'net') { player.y = H - 150; resolveBlocks(player); }   // 出生點避開下方技能列
+  _hudRects = null;
 
   state = 'playing';
   // 關掉所有選單畫面（教學可從標題直接開打，不只從模式畫面進來）
   document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
   document.getElementById('hud').classList.remove('hidden');
   document.getElementById('mode-label').textContent = mode === 'tutorial' ? '教學 TUTORIAL' : mode.toUpperCase();
-  document.getElementById('hud').classList.toggle('bossmode', mode === 'boss');   // 魔王血條在中上，剩餘計數讓位
+  document.getElementById('hud').classList.toggle('bossmode', mode === 'boss');   // 魔王戰收起「剩幾個」（魔王血條就是進度）
   document.getElementById('controls-hint').innerHTML = '<b>WASD</b> 移動 \u00b7 <b>滑鼠</b> 瞄準 \u00b7 <b>點擊</b> 攻擊 \u00b7 <b>Q E R</b> 技能';
   buildAbilityBar();
   const _nm = (window.PlayerName && PlayerName.get()) || '';
@@ -149,8 +151,41 @@ function _hudSet(key, el, prop, val) {
   _hudCache[key] = val;
   if (prop === 'text') el.textContent = val; else el.style[prop] = val;
 }
+// HUD 自動讓位：角色（含玩家、敵人、魔王）走到哪個 HUD 元件底下，那個元件就變半透明，不擋視線
+const HUD_DODGE_IDS = ['hp-bar', 'hp-name', 'match-info-box', 'abilities-bar', 'controls-hint', 'boss-bar', 'tut-panel', 'pause-btn'];
+let _hudRects = null, _hudRectT = 0;
+function hudDodge() {
+  const now = performance.now();
+  const stage = document.getElementById('stage');
+  if (!_hudRects || now - _hudRectT > 700) {
+    _hudRectT = now; _hudRects = [];
+    for (const id of HUD_DODGE_IDS) {
+      const el = id === 'match-info-box' ? document.querySelector('#hud .match-info') : document.getElementById(id);
+      if (!el || el.classList.contains('hidden') || !el.offsetParent) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width > 0) _hudRects.push({ el, r });
+    }
+  }
+  const cr = canvas.getBoundingClientRect(), k = cr.width / W;
+  const units = [];
+  for (const p of players) if (!p.dead) units.push(p);
+  for (const e of enemies) if (!e.dead) units.push(e);
+  for (const h of _hudRects) {
+    let hit = false;
+    for (const u of units) {
+      const R = (u.isBoss ? u.r * 1.4 : u.r * 1.6);
+      const x0 = cr.left + (u.x - R) * k, x1 = cr.left + (u.x + R) * k;
+      const y0 = cr.top + (u.y - (u.isBoss ? u.r * 1.3 : u.r * 2.6)) * k, y1 = cr.top + (u.y + u.r) * k;
+      if (x1 > h.r.left && x0 < h.r.right && y1 > h.r.top && y0 < h.r.bottom) { hit = true; break; }
+    }
+    if (h.el._dim !== hit) { h.el._dim = hit; h.el.classList.toggle('hud-dim', hit); }
+  }
+}
+window.addEventListener('resize', () => { _hudRects = null; });
+
 function updateHud() {
   const p1 = players[0];
+  if (state === 'playing') hudDodge();
   if (p1) {
     const pct = (100 * Math.max(0, p1.hp) / p1.maxHp);
     const w = pct.toFixed(1) + '%';

@@ -131,7 +131,7 @@ const Online = (() => {
   function flash(msg, ms = 6000, kind) {
     flashMsg = msg || ''; flashUntil = performance.now() + ms;
     render();
-    if (kind === 'error' || kind === 'info') toast(msg, kind);
+    if (kind === 'error') toast(msg, kind);
   }
   function toast(msg, kind) {
     let t = document.getElementById('net-toast');
@@ -239,7 +239,7 @@ const Online = (() => {
     const p = ensurePanel();
     // 只在標題／房間／結算畫面顯示（選角詳情頁會被它擋住「確認出戰」）
     const vis = (id) => { const el = document.getElementById(id); return el && !el.classList.contains('hidden'); };
-    const showPanel = (typeof state === 'undefined' || state !== 'playing') && (vis('title-screen') || vis('room-screen') || vis('end-screen'));
+    const showPanel = (typeof state === 'undefined' || state !== 'playing') && vis('title-screen');
     p.classList.toggle('hidden', !showPanel);
     const busy = window.NetMatch && NetMatch.busy;
     const mk = p.querySelector('#online-mkroom-btn'), jo = p.querySelector('#online-joroom-btn');
